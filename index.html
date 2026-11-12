@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#b23b24">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="叙野">
+  <meta name="description" content="叙野 · 手机小说工作台。书架、人物设定、剧情记忆、对话预览与重写。">
+  <title>叙野 · 故事书架</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #e9e2d5;
+      --sheet: #fbf7ee;
+      --sheet-2: #f3ecdf;
+      --ink: #191713;
+      --ink-soft: #39342c;
+      --muted: #6f695e;
+      --faint: #9b9284;
+      --line: rgba(25, 23, 19, 0.14);
+      --line-strong: rgba(25, 23, 19, 0.3);
+      --accent: #b23b24;
+      --accent-deep: #8d2a17;
+      --green: #4f6b52;
+      --dark: #17140f;
+      --dark-line: rgba(246, 240, 228, 0.16);
+      --serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, SimSun, serif;
+      --sans: "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+      --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --shadow: 0 18px 48px rgba(41, 34, 23, 0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { background: var(--paper); -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 12% -10%, rgba(255, 251, 241, 0.92) 0%, rgba(255, 251, 241, 0) 48%),
+        radial-gradient(ellipse at 100% 100%, rgba(167, 148, 116, 0.18) 0%, rgba(167, 148, 116, 0) 52%),
+        linear-gradient(118deg, #eee7da 0%, var(--paper) 48%, #e4dccc 100%);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      pointer-events: none;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.8'/></svg>");
+      mix-blend-mode: multiply;
+    }
+    ::selection { color: var(--sheet); background: var(--accent); }
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    * { scrollbar-width: thin; scrollbar-color: rgba(25, 23, 19, 0.24) transparent; }
+    *::-webkit-scrollbar { width: 7px; height: 7px; }
+    *::-webkit-scrollbar-thumb { background: rgba(25, 23, 19, 0.2); border-radius: 10px; }
+
+    /* ---------- common ---------- */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 560px;
+      isolation: isolate;
+    }
+    .appbar {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex: 0 0 auto;
+      min-height: calc(64px + var(--safe-top));
+      padding: var(--safe-top) 22px 0;
+      border-bottom: 1px solid var(--line-strong);
+      background: rgba(236, 228, 215, 0.62);
+      backdrop-filter: blur(10px);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand-seal {
+      display: grid;
+      place-items: center;
+      width: 33px;
+      height: 33px;
+      flex: 0 0 33px;
+      color: #fbf4e7;
+      background: var(--accent);
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+      transform: rotate(-2deg);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    }
+    .brand-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .brand-name {
+      font-family: var(--serif);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      line-height: 1.2;
+    }
+    .brand-sub {
+      color: var(--faint);
+      font-size: 7px;
+      letter-spacing: 0.2em;
+      white-space: nowrap;
+    }
+    .appbar-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .studio-title {
+      min-width: 0;
+      max-width: 300px;
+      overflow: hidden;
+      color: var(--muted);
+      font-family: var(--serif);
+      font-size: 11px;
+      letter-spacing: 0.03em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .connection {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 8.5px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .connection-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--faint);
+      box-shadow: 0 0 0 3px rgba(153, 144, 131, 0.08);
+    }
+    .connection.is-ready {
+      color: var(--ink-soft);
+      border-color: rgba(79, 107, 82, 0.32);
+      background: rgba(79, 107, 82, 0.05);
+    }
+    .connection.is-ready .connection-dot { background: var(--green); box-shadow: 0 0 0 3px rgba(79, 107, 82, 0.12); }
+    .settings-trigger, .back-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-height: 32px;
+      padding: 0 10px;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      background: transparent;
+      font-size: 9.5px;
+      letter-spacing: 0.04em;
+      transition: color 160ms var(--ease), background 160ms var(--ease);
+    }
+    .settings-trigger svg, .back-btn svg { width: 13px; height: 13px; }
+    .settings-trigger:hover, .back-btn:hover { color: var(--sheet); background: var(--ink); }
+    .back-btn { border-color: var(--line-strong); color: var(--muted); }
+    .back-btn:hover { border-color: var(--ink); }
+    .eyebrow {
+      color: var(--ink-soft);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+
+    /* ---------- bookshelf ---------- */
+    .shelf-view {
+      height: 100vh;
+      height: 100dvh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(255, 251, 242, 0.75) 0%, rgba(255, 251, 242, 0) 46%),
+        radial-gradient(ellipse at 100% 100%, rgba(167, 148, 116, 0.18) 0%, rgba(167, 148, 116, 0) 52%),
+        linear-gradient(118deg, #eee7da 0%, var(--paper) 48%, #e4dccc 100%);
+    }
+    .shelf-main {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 30px 22px calc(30px + var(--safe-bottom));
+    }
+    .shelf-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    .shelf-stats { color: var(--faint); font-size: 8.5px; letter-spacing: 0.04em; white-space: nowrap; }
+    .shelf-main h1 {
+      margin: 18px 0 8px;
+      font-family: var(--serif);
+      font-size: clamp(42px, 10vw, 70px);
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -0.045em;
+    }
+    .shelf-main h1 span { color: var(--accent); }
+    .shelf-lede {
+      max-width: 36em;
+      margin: 0;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 300;
+      line-height: 1.8;
+      text-wrap: pretty;
+    }
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 22px 12px;
+      margin-top: 28px;
+    }
+    .book-slot { position: relative; min-width: 0; padding-top: 14px; }
+    .book-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      min-height: 184px;
+      padding: 17px 15px 14px;
+      border: 1px solid rgba(73, 61, 43, 0.2);
+      color: var(--ink);
+      text-align: left;
+      background: linear-gradient(135deg, #faf5ea 0%, #efe4d2 100%);
+      box-shadow: 0 10px 22px rgba(54, 43, 26, 0.08);
+      transition: transform 180ms var(--ease), box-shadow 180ms var(--ease);
+    }
+    .book-card::before {
+      content: "";
+      position: absolute;
+      top: -14px;
+      left: 12px;
+      width: 64px;
+      height: 15px;
+      border: 1px solid rgba(73, 61, 43, 0.2);
+      border-bottom: 0;
+      border-radius: 4px 4px 0 0;
+      background: #f6eddf;
+    }
+    .book-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--accent);
+      opacity: 0.75;
+    }
+    .book-card[data-tone="1"] { background: linear-gradient(135deg, #f6f1e6 0%, #e7dfd0 100%); }
+    .book-card[data-tone="1"]::after { background: #6d7e64; }
+    .book-card[data-tone="2"] { background: linear-gradient(135deg, #f7efe2 0%, #ead8c6 100%); }
+    .book-card[data-tone="2"]::after { background: #a8754f; }
+    .book-card:hover { transform: translateY(-3px); box-shadow: 0 16px 30px rgba(54, 43, 26, 0.13); }
+    .book-label { color: var(--faint); font-size: 7px; letter-spacing: 0.15em; }
+    .book-title {
+      display: -webkit-box;
+      margin: 11px 0 8px;
+      overflow: hidden;
+      font-family: var(--serif);
+      font-size: 19px;
+      font-weight: 600;
+      line-height: 1.32;
+      letter-spacing: -0.02em;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      word-break: break-word;
+    }
+    .book-meta { margin-top: auto; color: var(--muted); font-size: 7.5px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+    .book-seal {
+      position: absolute;
+      right: 11px;
+      bottom: 10px;
+      display: grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(178, 59, 36, 0.42);
+      color: var(--accent);
+      font-family: var(--serif);
+      font-size: 8.5px;
+      transform: rotate(2deg);
+    }
+    .book-delete {
+      position: absolute;
+      z-index: 3;
+      top: 18px;
+      right: 3px;
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border: 0;
+      color: var(--faint);
+      background: transparent;
+    }
+    .book-delete svg { width: 12px; height: 12px; }
+    .book-delete:hover { color: var(--accent); background: rgba(178, 59, 36, 0.07); }
+    .add-book-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      min-height: 184px;
+      padding: 18px 15px;
+      border: 1px dashed rgba(25, 23, 19, 0.28);
+      color: var(--muted);
+      background: rgba(250, 246, 237, 0.26);
+      text-align: left;
+    }
+    .add-book-card::before {
+      content: "";
+      position: absolute;
+      top: -14px;
+      left: 12px;
+      width: 64px;
+      height: 15px;
+      border: 1px dashed rgba(25, 23, 19, 0.22);
+      border-bottom: 0;
+      border-radius: 4px 4px 0 0;
+    }
+    .add-book-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 13px;
+      border: 1px solid rgba(178, 59, 36, 0.35);
+      color: var(--accent);
+      font-family: var(--serif);
+      font-size: 22px;
+      line-height: 1;
+    }
+    .add-book-card strong { color: var(--ink-soft); font-family: var(--serif); font-size: 16px; font-weight: 600; }
+    .add-book-card small { margin-top: 4px; color: var(--faint); font-size: 8px; line-height: 1.6; }
+    .shelf-foot {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 28px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 7.5px;
+      line-height: 1.6;
+      letter-spacing: 0.08em;
+    }
+    .install-hint {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 8.5px;
+      line-height: 1.7;
+      background: rgba(251, 247, 238, 0.34);
+    }
+
+    /* ---------- workspace ---------- */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+    .left-pane {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      border-right: 1px solid var(--line-strong);
+      background: rgba(247, 241, 231, 0.28);
+    }
+    .left-pane::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: -1px;
+      width: 1px;
+      height: 42px;
+      background: var(--accent);
+    }
+    .left-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 18px 24px 14px; }
+    .left-inner { width: 100%; max-width: 640px; margin: 0 auto; }
+    .pane-intro { margin-bottom: 8px; }
+    .pane-kicker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+    .auto-merge { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 7.5px; white-space: nowrap; }
+    .auto-merge svg { width: 10px; height: 10px; color: var(--accent); }
+    .pane-intro h1 {
+      margin: 10px 0 5px;
+      font-family: var(--serif);
+      font-size: clamp(29px, 3.2vw, 38px);
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.035em;
+    }
+    .pane-intro h1 span { color: var(--accent); }
+    .pane-intro p { margin: 0; color: var(--muted); font-size: 9.5px; font-weight: 300; line-height: 1.7; }
+    .form-section { padding: 10px 0 11px; border-top: 1px solid var(--line); }
+    .form-head { display: flex; align-items: center; gap: 8px; min-height: 20px; margin-bottom: 5px; }
+    .section-index {
+      padding-right: 7px;
+      border-right: 1px solid rgba(178, 59, 36, 0.24);
+      color: var(--accent);
+      font-family: var(--serif);
+      font-size: 8px;
+      font-weight: 600;
+    }
+    .form-head h2 { margin: 0; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; }
+    .form-note { margin-left: auto; color: var(--faint); font-size: 7.5px; white-space: nowrap; }
+    .field-box {
+      padding: 7px 9px 6px;
+      border: 1px solid var(--line);
+      background: rgba(251, 247, 238, 0.46);
+      transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+    }
+    .field-box:focus-within { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(178, 59, 36, 0.06); }
+    .field-box textarea {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      max-height: 180px;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      resize: vertical;
+      color: var(--ink);
+      background: transparent;
+      font-family: var(--serif);
+      font-size: 12px;
+      line-height: 1.75;
+    }
+    .field-box textarea::placeholder { color: #a1988b; opacity: 1; }
+    #plotInput { min-height: 58px; }
+    .character-head-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .character-count { color: var(--faint); font-size: 7.5px; white-space: nowrap; }
+    .add-character-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 0;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      color: var(--accent);
+      background: transparent;
+      font-size: 8.5px;
+    }
+    .add-character-btn svg { width: 10px; height: 10px; }
+    .character-list { display: flex; flex-direction: column; gap: 7px; }
+    .character-card {
+      position: relative;
+      padding: 8px 10px 9px;
+      border: 1px dashed rgba(25, 23, 19, 0.23);
+      background: rgba(251, 247, 238, 0.44);
+    }
+    .character-card::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 20px;
+      height: 2px;
+      background: var(--accent);
+      opacity: 0.6;
+    }
+    .character-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px; }
+    .character-number { color: var(--accent); font-family: var(--serif); font-size: 7.5px; font-weight: 600; letter-spacing: 0.06em; }
+    .remove-character {
+      display: grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      margin: -2px -3px -2px 0;
+      padding: 0;
+      border: 0;
+      color: var(--faint);
+      background: transparent;
+    }
+    .remove-character svg { width: 11px; height: 11px; }
+    .remove-character:hover { color: var(--accent); }
+    .character-grid { display: grid; grid-template-columns: 1.15fr 0.78fr 0.65fr; gap: 3px 8px; }
+    .char-field { display: block; min-width: 0; }
+    .char-wide { grid-column: span 2; }
+    .char-full { grid-column: 1 / -1; }
+    .char-field > span { display: block; color: var(--faint); font-size: 7px; line-height: 1.4; }
+    .char-field input {
+      display: block;
+      width: 100%;
+      height: 22px;
+      padding: 1px 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      outline: 0;
+      color: var(--ink-soft);
+      background: transparent;
+      font-size: 10px;
+    }
+    .char-field input::placeholder { color: #b0a698; opacity: 1; }
+    .char-field input:focus { border-bottom-color: var(--accent); }
+    .character-empty {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border: 1px dashed var(--line);
+      color: var(--muted);
+      font-size: 8.5px;
+    }
+    .character-empty button { padding: 0 0 2px; border: 0; border-bottom: 1px solid var(--line-strong); background: transparent; font-size: 8.5px; }
+    .generate-dock {
+      flex: 0 0 auto;
+      color: var(--sheet);
+      background: linear-gradient(118deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 38%), var(--dark);
+      padding: 9px 24px 8px;
+    }
+    .dock-inner { max-width: 640px; margin: 0 auto; }
+    .locked-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--dark-line);
+    }
+    .locked-label { display: inline-flex; align-items: center; gap: 4px; color: #a69c8d; font-size: 7px; letter-spacing: 0.1em; white-space: nowrap; }
+    .locked-label svg { width: 8px; height: 8px; }
+    .locked-values { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+    .locked-values span { color: #b8ad9c; font-size: 7.5px; white-space: nowrap; }
+    .locked-values i { margin-right: 2px; color: #7e7568; font-family: var(--mono); font-size: 6.5px; font-style: normal; }
+    .locked-values b { color: #f0e7d8; font-weight: 500; }
+    .generate-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 44px;
+      margin-top: 7px;
+      padding: 0 15px;
+      border: 0;
+      clip-path: polygon(0 0, calc(100% - 11px) 0, 100% 11px, 100% 100%, 0 100%);
+      color: #fbf5e9;
+      background: var(--accent);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      transition: background 160ms var(--ease);
+    }
+    .generate-btn:hover { background: var(--accent-deep); }
+    .generate-btn svg { width: 17px; height: 17px; }
+    .generate-btn.is-generating { background: #312b23; }
+    .dock-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 5px; color: #81786b; font-size: 7px; line-height: 1.4; }
+    .dock-meta kbd { padding: 0 2px; border: 1px solid rgba(246, 240, 228, 0.14); font-family: var(--sans); font-size: 6.5px; }
+    .dock-memory { overflow: hidden; color: #9d9384; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ---------- manuscript ---------- */
+    .right-pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 16px 22px 10px; }
+    .right-inner { display: flex; flex-direction: column; flex: 1 1 auto; width: 100%; max-width: 820px; min-height: 0; margin: 0 auto; }
+    .stage-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: 0 0 auto; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+    .section-en { color: var(--faint); font-size: 7px; letter-spacing: 0.16em; white-space: nowrap; }
+    .stage-tools { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 0;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      color: var(--muted);
+      background: transparent;
+      font-size: 8.5px;
+      white-space: nowrap;
+    }
+    .action-btn svg { width: 12px; height: 12px; }
+    .action-btn:hover:not(:disabled) { color: var(--ink); border-bottom-color: var(--line-strong); }
+    .action-btn:disabled { opacity: 0.28; }
+
+    .memory-zone {
+      flex: 0 0 auto;
+      margin-top: 7px;
+      border: 1px solid rgba(178, 59, 36, 0.2);
+      background: rgba(251, 247, 238, 0.64);
+    }
+    .memory-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 8px 5px 10px; border-bottom: 1px solid rgba(178, 59, 36, 0.13); }
+    .memory-title { display: flex; align-items: center; gap: 5px; min-width: 0; }
+    .memory-dot { width: 4px; height: 4px; flex: 0 0 4px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px rgba(178, 59, 36, 0.1); }
+    .memory-title h3 { margin: 0; color: var(--ink-soft); font-size: 8.5px; font-weight: 600; white-space: nowrap; }
+    .memory-meta { color: var(--faint); font-size: 7px; white-space: nowrap; }
+    .memory-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .memory-link { padding: 1px 0; border: 0; border-bottom: 1px solid transparent; color: var(--muted); background: transparent; font-size: 7.5px; }
+    .memory-link:hover:not(:disabled) { color: var(--ink); border-bottom-color: var(--line-strong); }
+    .memory-link:disabled { opacity: 0.4; }
+    .memory-add {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 24px;
+      padding: 0 7px;
+      border: 1px solid var(--ink);
+      color: var(--sheet);
+      background: var(--ink);
+      font-size: 7.5px;
+      white-space: nowrap;
+    }
+    .memory-add svg { width: 9px; height: 9px; }
+    .memory-add:hover:not(:disabled) { border-color: var(--accent); background: var(--accent); }
+    .memory-add:disabled { border-color: var(--line-strong); color: var(--faint); background: transparent; opacity: 0.5; }
+    .memory-input {
+      display: block;
+      width: 100%;
+      height: 58px;
+      min-height: 52px;
+      max-height: 130px;
+      padding: 7px 10px;
+      border: 0;
+      outline: 0;
+      resize: vertical;
+      color: var(--ink-soft);
+      background: transparent;
+      font-family: var(--serif);
+      font-size: 10.5px;
+      line-height: 1.7;
+    }
+    .memory-input::placeholder { color: #a1988b; opacity: 1; }
+    .memory-input:disabled { opacity: 0.6; }
+
+    .paper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      margin-top: 7px;
+      border: 1px solid rgba(73, 61, 43, 0.13);
+      background: var(--sheet);
+      box-shadow: var(--shadow);
+    }
+    .paper-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex: 0 0 33px; padding: 0 14px; border-bottom: 1px solid var(--line); color: var(--faint); font-size: 7px; letter-spacing: 0.1em; }
+    .paper-meta { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+    .paper-seal { display: grid; place-items: center; width: 15px; height: 15px; border: 1px solid rgba(178, 59, 36, 0.4); color: var(--accent); font-family: var(--serif); font-size: 8px; transform: rotate(1.5deg); }
+    .paper-body {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 24px 22px 28px 39px;
+      background-image: linear-gradient(to right, transparent 24px, rgba(178, 59, 36, 0.16) 24px, rgba(178, 59, 36, 0.16) 25px, transparent 25px);
+      outline: none;
+    }
+    .manuscript {
+      width: 100%;
+      max-width: 600px;
+      color: #28241d;
+      font-family: var(--serif);
+      font-size: 15px;
+      line-height: 1.95;
+      letter-spacing: 0.01em;
+      text-wrap: pretty;
+    }
+    .manuscript p { margin: 0 0 1em; text-indent: 2em; }
+    .manuscript p:last-child { margin-bottom: 0; }
+    .manuscript.is-streaming p:last-child::after {
+      content: "";
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      margin-left: 2px;
+      vertical-align: -0.12em;
+      background: var(--accent);
+      animation: blink 900ms steps(1, end) infinite;
+    }
+    @keyframes blink { 0%,45% { opacity: 1; } 46%,100% { opacity: 0; } }
+    .empty { display: flex; flex-direction: column; align-items: flex-start; max-width: 330px; margin: auto 0; padding: 10px 0; }
+    .empty-quote { height: 35px; color: rgba(178, 59, 36, 0.32); font-family: var(--serif); font-size: 72px; font-weight: 900; line-height: 0.95; }
+    .empty-title { margin: 5px 0 7px; font-family: var(--serif); font-size: 24px; font-weight: 600; line-height: 1.25; }
+    .empty-copy { margin: 0; color: var(--muted); font-size: 9.5px; font-weight: 300; line-height: 1.75; }
+    .text-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 13px; padding: 0 0 2px; border: 0; border-bottom: 1px solid var(--line-strong); background: transparent; font-size: 8.5px; }
+    .text-link svg { width: 10px; height: 10px; }
+    .error-box { width: 100%; margin-top: 14px; padding: 10px 12px; border-top: 2px solid var(--accent); background: rgba(178, 59, 36, 0.05); }
+    .error-top { display: flex; align-items: center; justify-content: space-between; color: var(--accent); font-size: 7px; letter-spacing: 0.12em; }
+    .error-top svg { width: 12px; height: 12px; }
+    .error-box p { margin: 6px 0 8px; color: var(--ink-soft); font-size: 9.5px; line-height: 1.7; overflow-wrap: anywhere; }
+    .retry-btn { padding: 0 0 2px; border: 0; border-bottom: 1px solid rgba(178, 59, 36, 0.35); color: var(--accent); background: transparent; font-size: 8.5px; }
+    .pen-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex: 0 0 auto;
+      margin-top: 7px;
+      padding: 6px 8px 6px 10px;
+      border: 1px solid var(--line);
+      background: rgba(251, 247, 238, 0.5);
+    }
+    .pen-copy { display: flex; flex-direction: column; min-width: 0; }
+    .pen-kicker { color: var(--faint); font-size: 6.5px; letter-spacing: 0.12em; }
+    .pen-copy span:last-child { color: var(--muted); font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pen-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      background: transparent;
+      font-size: 8px;
+      white-space: nowrap;
+    }
+    .pen-btn svg { width: 13px; height: 13px; }
+    .pen-btn:hover:not(:disabled) { color: var(--sheet); background: var(--ink); }
+    .pen-btn:disabled { border-color: var(--line-strong); color: var(--faint); opacity: 0.45; }
+    .stage-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: 0 0 auto; min-height: 24px; padding-top: 5px; color: var(--faint); font-size: 7px; }
+    .status-line { display: flex; align-items: center; gap: 5px; min-width: 0; }
+    .status-dot { width: 4px; height: 4px; flex: 0 0 4px; border-radius: 50%; background: var(--faint); }
+    .status-dot[data-state="working"] { background: var(--accent); box-shadow: 0 0 0 2px rgba(178, 59, 36, 0.12); animation: pulse 1.4s infinite; }
+    .status-dot[data-state="done"] { background: var(--green); }
+    .status-dot[data-state="error"] { background: var(--accent); }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    #statusText { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .foot-meta { display: flex; align-items: center; gap: 5px; overflow: hidden; white-space: nowrap; }
+    #modelLabel { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; }
+    .mobile-stop-btn { display: none; padding: 0 6px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font-size: 7px; }
+
+    /* ---------- mobile tabs ---------- */
+    .mobile-tabs { display: none; }
+
+    /* ---------- settings drawer ---------- */
+    .settings-layer { position: fixed; z-index: 90; inset: 0; }
+    .settings-scrim { position: absolute; inset: 0; background: rgba(16, 13, 9, 0.56); backdrop-filter: blur(4px); opacity: 0; transition: opacity 280ms var(--ease); }
+    .settings-sheet {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      width: min(520px, 100vw);
+      height: 100%;
+      color: #f0e8da;
+      background: radial-gradient(ellipse at 100% 0%, rgba(178, 59, 36, 0.13), transparent 38%), var(--dark);
+      box-shadow: -18px 0 60px rgba(10, 8, 5, 0.3);
+      transform: translateX(100%);
+      transition: transform 320ms var(--ease);
+      overflow: hidden;
+    }
+    .settings-layer.is-open .settings-scrim { opacity: 1; }
+    .settings-layer.is-open .settings-sheet { transform: translateX(0); }
+    .sheet-rule { flex: 0 0 3px; background: var(--accent); }
+    .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px 10px; }
+    .sheet-head .eyebrow { color: #b4a997; }
+    .close-sheet { display: grid; place-items: center; width: 33px; height: 33px; padding: 0; border: 1px solid var(--dark-line); color: #cfc4b3; background: transparent; }
+    .close-sheet svg { width: 14px; height: 14px; }
+    .sheet-scroll { flex: 1 1 auto; overflow-y: auto; padding: 2px 20px calc(26px + var(--safe-bottom)); }
+    .sheet-scroll h2 { margin: 5px 0 8px; color: #f7f0e3; font-family: var(--serif); font-size: 39px; font-weight: 600; line-height: 1.08; letter-spacing: -0.035em; }
+    .sheet-scroll h2 span { color: #d8a58f; }
+    .sheet-lede { margin: 0 0 14px; color: #a79d8e; font-size: 9.5px; font-weight: 300; line-height: 1.8; }
+    .fixed-params { padding: 10px 11px; border: 1px solid rgba(224, 176, 159, 0.2); background: rgba(178, 59, 36, 0.055); }
+    .fixed-head { display: flex; justify-content: space-between; gap: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(240, 232, 218, 0.12); color: #c3b6a4; font-size: 7.5px; letter-spacing: 0.1em; }
+    .fixed-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px 9px; margin-top: 7px; }
+    .fixed-grid span { display: block; overflow: hidden; color: #8f8577; font-size: 7px; white-space: nowrap; text-overflow: ellipsis; }
+    .fixed-grid strong { display: block; margin-top: 1px; color: #f2e9da; font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .fixed-params p { margin: 7px 0 0; color: #8d8172; font-size: 7.5px; line-height: 1.6; }
+    .form-field { padding: 12px 0 13px; border-top: 1px solid var(--dark-line); }
+    .form-field label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; color: #e9dfcf; font-size: 9.5px; font-weight: 500; }
+    .form-field label em { color: #82796b; font-size: 7.5px; font-style: normal; letter-spacing: 0.12em; }
+    .form-field input {
+      display: block;
+      width: 100%;
+      height: 40px;
+      margin-top: 6px;
+      padding: 0 10px;
+      border: 1px solid rgba(240, 232, 218, 0.18);
+      border-radius: 0;
+      outline: 0;
+      color: #f7f0e4;
+      background: rgba(255, 255, 255, 0.025);
+      font-size: 11.5px;
+    }
+    .form-field input::placeholder { color: #6f675c; opacity: 1; }
+    .form-field input:focus { border-color: rgba(224, 176, 159, 0.7); box-shadow: 0 0 0 3px rgba(178, 59, 36, 0.12); }
+    .form-field small { display: block; margin-top: 5px; color: #81786b; font-size: 8px; line-height: 1.65; }
+    .form-field code { font-family: var(--mono); font-size: 0.94em; }
+    .endpoint-preview { display: block; margin-top: 6px; color: #aa9e8c; font-family: var(--mono); font-size: 7.5px; line-height: 1.5; overflow-wrap: anywhere; }
+    .key-wrap { position: relative; margin-top: 6px; }
+    .key-wrap input { margin-top: 0; padding-right: 52px; }
+    .reveal-key { position: absolute; top: 0; right: 0; width: 50px; height: 40px; padding: 0; border: 0; border-left: 1px solid rgba(240, 232, 218, 0.14); color: #b9ae9d; background: transparent; font-size: 8.5px; }
+    .remember-row { display: flex; align-items: flex-start; gap: 9px; padding: 12px 0 13px; border-top: 1px solid var(--dark-line); color: #ddd2c2; font-size: 9.5px; }
+    .remember-row input { margin-top: 2px; accent-color: var(--accent); }
+    .remember-row small { display: block; margin-top: 2px; color: #81786b; font-size: 8px; line-height: 1.6; }
+    .form-actions { display: flex; gap: 8px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 41px;
+      padding: 0 13px;
+      border: 1px solid transparent;
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+    .btn-quiet { border-color: rgba(240, 232, 218, 0.24); color: #cfc4b3; background: transparent; }
+    .btn-primary { flex: 1 1 auto; color: var(--dark); background: #efe6d6; }
+    .settings-status { min-height: 16px; margin: 7px 0 0; color: #b6ab9b; font-size: 8.5px; line-height: 1.65; }
+    .settings-status[data-type="success"] { color: #a8c0a9; }
+    .settings-status[data-type="warn"] { color: #d8b98b; }
+    .settings-status[data-type="error"] { color: #e0a08d; }
+    .note-block { margin-top: 13px; border-top: 1px solid var(--dark-line); border-bottom: 1px solid var(--dark-line); }
+    .note-block summary { padding: 10px 0; color: #a89e8f; font-size: 8.5px; line-height: 1.6; list-style: none; cursor: pointer; }
+    .note-block summary::-webkit-details-marker { display: none; }
+    .note-block p { margin: 0 0 8px; color: #887f72; font-size: 8px; line-height: 1.75; }
+    .forget-btn { margin-top: 18px; padding: 0 0 2px; border: 0; border-bottom: 1px solid rgba(224, 160, 141, 0.28); color: #a99284; background: transparent; font-size: 8px; }
+
+    /* ---------- modals ---------- */
+    .modal-layer { position: fixed; z-index: 110; inset: 0; display: flex; align-items: center; justify-content: center; padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bottom)); }
+    .modal-scrim { position: absolute; inset: 0; background: rgba(16, 13, 9, 0.58); backdrop-filter: blur(4px); }
+    .modal-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: min(540px, 100%);
+      max-height: min(88vh, 760px);
+      background: var(--sheet);
+      border: 1px solid rgba(73, 61, 43, 0.22);
+      box-shadow: 0 24px 70px rgba(10, 8, 5, 0.32);
+      overflow: hidden;
+      animation: modal-in 220ms var(--ease) both;
+    }
+    @keyframes modal-in { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: none; } }
+    .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 16px 18px 11px; border-bottom: 1px solid var(--line); }
+    .modal-head h2 { margin: 6px 0 0; font-family: var(--serif); font-size: 25px; font-weight: 600; line-height: 1.2; letter-spacing: -0.025em; }
+    .modal-close { display: grid; place-items: center; width: 32px; height: 32px; flex: 0 0 32px; padding: 0; border: 1px solid var(--line); color: var(--muted); background: transparent; }
+    .modal-close svg { width: 13px; height: 13px; }
+    .modal-body { padding: 13px 18px 5px; overflow-y: auto; }
+    .modal-lede { margin: 0; color: var(--muted); font-size: 9px; font-weight: 300; line-height: 1.75; }
+    .modal-field { display: block; margin-top: 13px; }
+    .modal-field span { display: block; margin-bottom: 5px; color: var(--ink-soft); font-size: 8.5px; font-weight: 600; }
+    .modal-field input, .modal-field textarea {
+      display: block;
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 0;
+      outline: 0;
+      background: rgba(255, 251, 242, 0.35);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+    .modal-field input { height: 41px; }
+    .modal-field textarea { min-height: 115px; resize: vertical; font-family: var(--serif); font-size: 12px; }
+    .modal-field input:focus, .modal-field textarea:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(178, 59, 36, 0.06); }
+    .modal-error { min-height: 14px; margin: 6px 0 0; color: var(--accent); font-size: 8px; line-height: 1.5; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px calc(15px + var(--safe-bottom)); border-top: 1px solid var(--line); }
+    .modal-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 0 13px; border: 1px solid transparent; font-size: 9px; font-weight: 500; }
+    .modal-btn-quiet { border-color: var(--line-strong); color: var(--muted); background: transparent; }
+    .modal-btn-primary { color: var(--sheet); background: var(--accent); }
+    .preview-modal { width: min(760px, 100%); }
+    .preview-note { margin: 0; padding: 9px 18px 0; color: var(--faint); font-size: 8px; line-height: 1.6; }
+    .preview-summary { padding: 6px 18px 8px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 7.5px; }
+    .preview-body { flex: 1 1 auto; min-height: 150px; overflow-y: auto; padding: 0 18px 18px; }
+    .preview-empty { padding: 32px 0; color: var(--faint); font-family: var(--serif); font-size: 14px; text-align: center; }
+    .preview-turn { padding: 12px 0; border-top: 1px solid var(--line); }
+    .preview-turn:first-child { border-top: 0; }
+    .preview-role { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 5px; color: var(--muted); font-size: 7.5px; font-weight: 600; letter-spacing: 0.07em; }
+    .preview-turn.is-user .preview-role { color: var(--accent); }
+    .preview-turn.is-assistant .preview-role { color: var(--green); }
+    .preview-content { color: var(--ink-soft); font-family: var(--serif); font-size: 11px; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .preview-turn.is-user .preview-content { padding: 8px 9px; border: 1px solid var(--line); background: rgba(255, 251, 242, 0.3); font-family: var(--sans); font-size: 9.5px; line-height: 1.7; }
+    .preview-time { color: var(--faint); font-size: 7px; font-weight: 400; }
+
+    /* ---------- toast ---------- */
+    .toast {
+      position: fixed;
+      z-index: 130;
+      left: 50%;
+      bottom: calc(18px + var(--safe-bottom));
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: min(92vw, 520px);
+      padding: 9px 12px;
+      color: #f3ecdf;
+      background: #1d1914;
+      box-shadow: 0 10px 30px rgba(10, 8, 5, 0.24);
+      font-size: 9.5px;
+      line-height: 1.5;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 10px);
+      transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+    }
+    .toast.is-visible { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+    .toast button { flex: 0 0 auto; padding: 0; border: 0; border-bottom: 1px solid rgba(224, 160, 141, 0.45); color: #e0b09f; background: transparent; font-size: 9px; }
+    .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    /* ---------- responsive ---------- */
+    @media (min-width: 901px) {
+      .install-hint { display: none; }
+      .shelf-main { padding-top: 38px; }
+      .book-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 28px 18px; }
+      .book-card, .add-book-card { min-height: 218px; padding: 21px 18px 16px; }
+      .book-title { font-size: 23px; }
+      .book-card::before, .add-book-card::before { width: 84px; height: 17px; top: -17px; left: 16px; }
+      .book-slot { padding-top: 17px; }
+      .book-seal { right: 14px; bottom: 13px; width: 21px; height: 21px; font-size: 10px; }
+      .book-delete { top: 22px; right: 6px; opacity: 0; }
+      .book-slot:hover .book-delete, .book-delete:focus-visible { opacity: 1; }
+      .left-scroll { padding: 23px 30px 16px; }
+      .left-inner { max-width: 680px; }
+      .pane-intro h1 { font-size: clamp(34px, 3.4vw, 43px); }
+      .form-section { padding: 13px 0 14px; }
+      .form-head { margin-bottom: 7px; }
+      .field-box textarea { font-size: 12.5px; min-height: 56px; }
+      #plotInput { min-height: 66px; }
+      .character-grid { gap: 4px 10px; }
+      .character-card { padding: 9px 11px 10px; }
+      .generate-dock { padding: 10px 30px 9px; }
+      .dock-inner { max-width: 680px; }
+      .right-pane { padding: 20px 28px 12px; }
+      .memory-input { height: 66px; font-size: 11px; }
+      .paper-body { padding: 30px 30px 34px 48px; }
+      .manuscript { font-size: 16px; }
+      .empty-title { font-size: 30px; }
+      .settings-sheet { width: min(530px, 100vw); }
+    }
+
+    @media (max-width: 900px) {
+      body { overflow: hidden; }
+      .app { height: 100dvh; min-height: 0; }
+      .appbar { min-height: calc(58px + var(--safe-top)); padding-left: 14px; padding-right: 14px; }
+      .brand-seal { width: 30px; height: 30px; flex-basis: 30px; font-size: 16px; }
+      .brand-name { font-size: 16px; }
+      .brand-sub { display: none; }
+      .connection { display: none; }
+      .settings-trigger { min-height: 31px; padding: 0 8px; font-size: 9px; }
+      .back-btn { min-height: 31px; padding: 0 8px; font-size: 9px; }
+      .studio-title { display: none; }
+      .workspace { display: block; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+      .left-pane, .right-pane { height: 100%; min-height: 0; border-right: 0; }
+      .left-pane::after { display: none; }
+      .left-scroll { padding: 13px 15px 10px; }
+      .left-inner { max-width: none; }
+      .pane-intro { margin-bottom: 6px; }
+      .pane-intro h1 { font-size: 31px; margin: 8px 0 4px; }
+      .pane-intro p { font-size: 9px; }
+      .pane-kicker { padding-bottom: 5px; }
+      .form-section { padding: 9px 0 10px; }
+      .form-head h2 { font-size: 10px; }
+      .field-box textarea { font-size: 12px; }
+      .character-grid { grid-template-columns: 1fr 1fr; gap: 4px 9px; }
+      .char-wide { grid-column: span 2; }
+      .char-field[data-field="age-field"] { grid-column: span 2; }
+      .character-grid .char-field:last-child { grid-column: span 2; }
+      .generate-dock { padding: 8px 15px calc(7px + 0px); }
+      .dock-inner { max-width: none; }
+      .locked-strip { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .locked-values { justify-content: flex-start; gap: 8px; }
+      .generate-btn { height: 44px; }
+      .dock-meta { font-size: 6.5px; }
+      .right-pane { padding: 8px 12px 6px; }
+      .right-inner { max-width: none; }
+      .stage-head { padding-bottom: 5px; }
+      .section-en { display: none; }
+      .action-btn { font-size: 0; gap: 0; }
+      .action-btn svg { width: 14px; height: 14px; }
+      .memory-zone { margin-top: 5px; }
+      .memory-head { padding: 4px 7px 4px 8px; }
+      .memory-title h3 { font-size: 8px; }
+      .memory-meta { font-size: 6.5px; }
+      .memory-add { min-height: 22px; padding: 0 6px; font-size: 7px; }
+      .memory-input { height: 54px; font-size: 10px; padding: 5px 8px; }
+      .paper { margin-top: 5px; }
+      .paper-top { flex-basis: 29px; padding: 0 10px; }
+      .paper-body { padding: 18px 16px 22px 34px; background-image: linear-gradient(to right, transparent 21px, rgba(178,59,36,.16) 21px, rgba(178,59,36,.16) 22px, transparent 22px); }
+      .manuscript { font-size: 14.5px; line-height: 1.9; }
+      .empty { max-width: 280px; }
+      .empty-quote { height: 31px; font-size: 64px; }
+      .empty-title { font-size: 22px; }
+      .empty-copy { font-size: 9px; }
+      .pen-bar { margin-top: 5px; padding: 4px 6px 4px 8px; }
+      .pen-kicker { font-size: 6px; }
+      .pen-copy span:last-child { display: none; }
+      .pen-btn { min-height: 29px; padding: 0 8px; font-size: 7.5px; }
+      .pen-btn svg { width: 12px; height: 12px; }
+      .stage-foot { min-height: 21px; padding-top: 3px; font-size: 6.5px; }
+      #modelLabel { max-width: 38vw; }
+      .mobile-stop-btn { display: inline-flex; align-items: center; }
+      .mobile-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        flex: 0 0 auto;
+        min-height: calc(54px + var(--safe-bottom));
+        padding-bottom: var(--safe-bottom);
+        border-top: 1px solid var(--line-strong);
+        background: rgba(251, 247, 238, 0.94);
+        backdrop-filter: blur(12px);
+      }
+      .mobile-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        border: 0;
+        color: var(--faint);
+        background: transparent;
+        font-size: 8px;
+        letter-spacing: 0.08em;
+      }
+      .mobile-tab svg { width: 17px; height: 17px; }
+      .mobile-tab.is-active { color: var(--accent); }
+      .mobile-tab.is-active::before { content: ""; width: 18px; height: 2px; margin-bottom: 1px; background: var(--accent); }
+      .studio-tab-settings .right-pane { display: none; }
+      .studio-tab-manuscript .left-pane { display: none; }
+      .shelf-main { padding: 22px 15px calc(24px + var(--safe-bottom)); }
+      .shelf-main h1 { font-size: 43px; margin-top: 15px; }
+      .shelf-lede { font-size: 9.5px; }
+      .book-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 19px 10px; margin-top: 22px; }
+      .book-card, .add-book-card { min-height: 166px; padding: 15px 12px 12px; }
+      .book-card::before, .add-book-card::before { left: 10px; width: 58px; }
+      .book-title { font-size: 17px; margin: 9px 0 6px; }
+      .book-meta { font-size: 7px; }
+      .book-seal { width: 17px; height: 17px; font-size: 8px; right: 8px; bottom: 8px; }
+      .book-delete { top: 15px; right: 1px; opacity: 1; }
+      .add-book-card strong { font-size: 15px; }
+      .add-book-icon { width: 31px; height: 31px; margin-bottom: 10px; font-size: 20px; }
+      .shelf-foot { flex-direction: column; gap: 4px; font-size: 6.5px; }
+      .install-hint { margin-top: 12px; font-size: 7.5px; }
+      .toast { bottom: calc(70px + var(--safe-bottom)); }
+      .settings-sheet { width: 100vw; height: 100%; }
+      .sheet-head { padding-top: calc(12px + var(--safe-top)); }
+      .sheet-scroll { padding-left: 18px; padding-right: 18px; }
+      .sheet-scroll h2 { font-size: 35px; }
+      .modal-card { max-height: 90dvh; }
+      .modal-head { padding-top: calc(14px + var(--safe-top)); }
+      .modal-head h2 { font-size: 23px; }
+      .modal-body { padding-left: 15px; padding-right: 15px; }
+      .modal-foot { padding-left: 15px; padding-right: 15px; }
+      .preview-note, .preview-summary { padding-left: 15px; padding-right: 15px; }
+      .preview-body { padding-left: 15px; padding-right: 15px; }
+      .preview-modal { height: 86dvh; }
+    }
+
+    @media (max-width: 390px) {
+      .back-btn span { display: none; }
+      .back-btn { width: 31px; padding: 0; }
+      .brand-name { font-size: 15px; }
+      .shelf-main h1 { font-size: 39px; }
+      .book-grid { column-gap: 9px; }
+      .book-title { font-size: 16px; }
+      .fixed-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shelf-view" id="shelfView">
+    <header class="appbar">
+      <div class="brand" aria-label="叙野故事书架">
+        <span class="brand-seal" aria-hidden="true">叙</span>
+        <div class="brand-copy">
+          <span class="brand-name">叙野</span>
+          <span class="brand-sub">STORY LIBRARY · PWA</span>
+        </div>
+      </div>
+      <div class="appbar-actions">
+        <div class="connection" id="shelfConnection" title="尚未配置模型接口">
+          <span class="connection-dot" aria-hidden="true"></span>
+          <span id="shelfConnectionText">API 未配置</span>
+        </div>
+        <button class="settings-trigger" id="shelfSettingsBtn" type="button" aria-label="接口设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+          <span>设置</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="shelf-main">
+      <div class="shelf-head">
+        <span class="eyebrow">PERSONAL LIBRARY / 本地书架</span>
+        <span class="shelf-stats" id="libraryStats">0 本书 · 0 字</span>
+      </div>
+      <h1>故事，<br><span>都在这里。</span></h1>
+      <p class="shelf-lede">每本书独立保存人物、情节、记忆和对话历史。点开书封继续写，或新建一个故事文件夹。</p>
+      <div class="book-grid" id="bookGrid"></div>
+      <div class="install-hint" id="installHint">iPhone / iPad：用 Safari 打开本页，点「分享」→「添加到主屏幕」，即可像 App 一样使用。API 地址、Key 和模型由你在右上角「设置」中填写。</div>
+      <footer class="shelf-foot">
+        <span>LOCAL ONLY · 所有内容仅保存在本机浏览器</span>
+        <span id="shelfDate">—</span>
+      </footer>
+    </main>
+  </div>
+
+  <div class="app studio-tab-settings" id="studioView" hidden>
+    <header class="appbar studio-appbar">
+      <div class="appbar-actions">
+        <button class="back-btn" id="backToShelfBtn" type="button" aria-label="返回书架">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          <span>书架</span>
+        </button>
+        <div class="brand">
+          <span class="brand-seal" aria-hidden="true">叙</span>
+        </div>
+      </div>
+      <div class="studio-title" id="studioBookTitle">未命名书稿</div>
+      <div class="appbar-actions">
+        <div class="connection" id="studioConnection" title="尚未配置模型接口">
+          <span class="connection-dot" aria-hidden="true"></span>
+          <span id="studioConnectionText">API 未配置</span>
+        </div>
+        <button class="settings-trigger" id="studioSettingsBtn" type="button" aria-label="接口设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+          <span>设置</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="left-pane" aria-labelledby="storyTitle">
+        <div class="left-scroll" id="leftScroll">
+          <div class="left-inner">
+            <div class="pane-intro">
+              <div class="pane-kicker">
+                <span class="eyebrow">STORY BIBLE / 故事设定</span>
+                <span class="auto-merge">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><path d="M8 1.8 9.4 6l4.2 1.4-4.2 1.4L8 13l-1.4-4.2L2.4 7.4 6.6 6 8 1.8Z"/></svg>
+                  自动融入提示词
+                </span>
+              </div>
+              <h1 id="storyTitle">把这一章，<br><span>安排妥当。</span></h1>
+              <p>前情、人物、情节与写作要求会整理成同一条提示交给模型。</p>
+            </div>
+
+            <section class="form-section">
+              <div class="form-head"><span class="section-index">01</span><h2>前情提要</h2><span class="form-note">已经发生的事</span></div>
+              <div class="field-box"><textarea id="premiseInput" maxlength="8000" spellcheck="false" placeholder="此前发生的事、人物处境和未解决的悬念。没有前情可以留空。"></textarea></div>
+            </section>
+
+            <section class="form-section">
+              <div class="form-head">
+                <span class="section-index">02</span><h2>人物背景</h2>
+                <div class="character-head-actions">
+                  <span class="character-count" id="characterCount">0 位</span>
+                  <button class="add-character-btn" id="addCharacterBtn" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M8 2.5v11M2.5 8h11"/></svg>添加人物</button>
+                </div>
+              </div>
+              <div class="character-list" id="characterList"></div>
+              <div class="character-empty" id="characterEmpty" hidden><span>还没有人物档案。</span><button id="addCharacterEmptyBtn" type="button">+ 创建人物</button></div>
+            </section>
+
+            <section class="form-section">
+              <div class="form-head"><span class="section-index">03</span><h2>情节</h2><span class="form-note">按此展开故事</span></div>
+              <div class="field-box"><textarea id="plotInput" maxlength="8000" spellcheck="false" placeholder="这一章必须发生的情节。例如：他在最后一本书里发现一张写给自己的借书卡。"></textarea></div>
+            </section>
+
+            <section class="form-section">
+              <div class="form-head"><span class="section-index">04</span><h2>写作要求</h2><span class="form-note">风格 / 节奏 / 禁忌</span></div>
+              <div class="field-box"><textarea id="requirementsInput" maxlength="6000" spellcheck="false" placeholder="例如：第三人称限知；冷峻克制；多用感官细节；约 1500 字。"></textarea></div>
+            </section>
+          </div>
+        </div>
+
+        <div class="generate-dock">
+          <div class="dock-inner">
+            <div class="locked-strip" aria-label="固定生成参数">
+              <span class="locked-label"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3.2" y="7" width="9.6" height="6.6" rx="0.5"/><path d="M5.2 7V5.2a2.8 2.8 0 0 1 5.6 0V7"/></svg>固定参数</span>
+              <div class="locked-values">
+                <span title="temperature"><i>T</i><b>0.70</b></span>
+                <span title="top_p"><i>P</i><b>0.90</b></span>
+                <span title="top_k"><i>K</i><b>50</b></span>
+                <span title="frequency_penalty"><i>F</i><b>0.20</b></span>
+                <span title="presence_penalty"><i>PP</i><b>0.20</b></span>
+                <span title="repetition_penalty"><i>RP</i><b>1.00</b></span>
+              </div>
+            </div>
+            <button class="generate-btn" id="generateBtn" type="button" aria-label="生成正文">
+              <span id="generateLabel">生成正文</span>
+              <svg id="generateArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+              <svg id="stopIcon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" hidden><rect x="6.5" y="6.5" width="11" height="11"/></svg>
+            </button>
+            <div class="dock-meta">
+              <span>设定与记忆自动融合</span>
+              <span class="dock-memory" id="memoryDock">未记忆剧情</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="right-pane" aria-labelledby="stageTitle">
+        <div class="right-inner">
+          <div class="stage-head">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0">
+              <span class="eyebrow">MANUSCRIPT / 手稿</span>
+              <span class="section-en">AI OUTPUT</span>
+            </div>
+            <div class="stage-tools">
+              <button class="action-btn" id="previewBtn" type="button" aria-label="预览对话历史"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12s3.3-6 9-6 9 6 9 6-3.3 6-9 6-9-6-9-6Z"/><circle cx="12" cy="12" r="2.5"/></svg><span>预览</span></button>
+              <button class="action-btn" id="copyBtn" type="button" aria-label="复制正文" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="0.5"/><path d="M15 9V4H4v11h5"/></svg><span>复制</span></button>
+              <button class="action-btn" id="downloadBtn" type="button" aria-label="下载正文" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg><span>下载</span></button>
+              <button class="action-btn" id="clearBtn" type="button" aria-label="清空正文" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg><span>清空</span></button>
+            </div>
+          </div>
+
+          <h2 class="sr-only" id="stageTitle">生成手稿</h2>
+
+          <section class="memory-zone" aria-labelledby="memoryTitle">
+            <div class="memory-head">
+              <div class="memory-title"><span class="memory-dot" aria-hidden="true"></span><h3 id="memoryTitle">剧情记忆</h3><span class="memory-meta" id="memoryMeta">0 字 · 可编辑</span></div>
+              <div class="memory-actions">
+                <button class="memory-link" id="memoryClearBtn" type="button" disabled>清空</button>
+                <button class="memory-add" id="memoryBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4V4Z"/><path d="M12 8v6M9 11h6"/></svg>记忆当前正文</button>
+              </div>
+            </div>
+            <textarea class="memory-input" id="memoryInput" maxlength="20000" spellcheck="false" placeholder="这里存放已记忆剧情，也可以直接输入或修改。下次生成会自动作为既定前文。"></textarea>
+          </section>
+
+          <div class="paper">
+            <div class="paper-top">
+              <span>手稿 · <span id="paperDate">—</span></span>
+              <div class="paper-meta"><span id="paperWords">0000 字</span><span class="paper-seal" aria-hidden="true">叙</span></div>
+            </div>
+            <div class="paper-body" id="paperBody" tabindex="0" aria-label="生成的小说正文">
+              <article class="manuscript" id="output" aria-label="小说正文"></article>
+              <div class="empty" id="emptyState">
+                <span class="empty-quote" aria-hidden="true">“</span>
+                <h3 class="empty-title" id="emptyTitle">这一章，尚未落笔。</h3>
+                <p class="empty-copy" id="emptyCopy">填好故事设定，生成第一段正文。生成后可把剧情放进上方记忆区，或用下方钢笔继续修改。</p>
+                <button class="text-link" id="emptyConfigBtn" type="button"><span>先连接模型</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 6l6 6-6 6"/></svg></button>
+              </div>
+              <div class="error-box" id="errorBox" hidden role="alert">
+                <div class="error-top"><span>接口提示 / ERROR</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.7 20h18.6L12 3Z"/><path d="M12 9v4.5M12 17h.01"/></svg></div>
+                <p id="errorText"></p>
+                <button class="retry-btn" id="retryBtn" type="button">使用相同设定重新生成</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pen-bar">
+            <div class="pen-copy"><span class="pen-kicker">REVISION / 重写</span><span>在刚刚生成的正文上继续修改</span></div>
+            <button class="pen-btn" id="penBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2c2.1 1.9 3.2 4.2 3.2 6.7 0 2.2-1.2 3.6-1.2 5.1 0 1.2.5 2.1.5 2.1H9.5s.5-.9.5-2.1c0-1.5-1.2-2.9-1.2-5.1 0-2.5 1.1-4.8 3.2-6.7Z"/><path d="M12 8.2v9.5M10.5 20.5h3"/></svg><span>修改此稿</span></button>
+          </div>
+
+          <footer class="stage-foot">
+            <div class="status-line"><span class="status-dot" id="statusDot" data-state="idle" aria-hidden="true"></span><span id="statusText">等待灵感</span><button class="mobile-stop-btn" id="mobileStopBtn" type="button" hidden>停止</button></div>
+            <div class="foot-meta"><span id="modelLabel">未配置模型</span></div>
+          </footer>
+        </div>
+      </section>
+    </main>
+
+    <nav class="mobile-tabs" aria-label="创作页切换">
+      <button class="mobile-tab is-active" type="button" data-mobile-tab="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+        设定
+      </button>
+      <button class="mobile-tab" type="button" data-mobile-tab="manuscript">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        手稿
+      </button>
+    </nav>
+  </div>
+
+  <div class="modal-layer" id="newBookLayer" hidden>
+    <div class="modal-scrim" data-close-new-book aria-hidden="true"></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="newBookHeading">
+      <header class="modal-head"><div><span class="eyebrow">NEW BOOK / 新建书稿</span><h2 id="newBookHeading">给故事一个名字。</h2></div><button class="modal-close" id="closeNewBookBtn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></button></header>
+      <div class="modal-body">
+        <p class="modal-lede">每本书独立保存人物、情节、记忆和对话历史。创建后直接进入创作页。</p>
+        <label class="modal-field" for="newBookTitleInput"><span>书名</span><input id="newBookTitleInput" type="text" maxlength="60" autocomplete="off" placeholder="例如：雨夜旧书店"></label>
+        <p class="modal-error" id="newBookError" role="alert"></p>
+      </div>
+      <footer class="modal-foot"><button class="modal-btn modal-btn-quiet" id="cancelNewBookBtn" type="button">取消</button><button class="modal-btn modal-btn-primary" id="createBookBtn" type="button">创建并开始</button></footer>
+    </section>
+  </div>
+
+  <div class="modal-layer" id="previewLayer" hidden>
+    <div class="modal-scrim" data-close-preview aria-hidden="true"></div>
+    <section class="modal-card preview-modal" role="dialog" aria-modal="true" aria-labelledby="previewHeading">
+      <header class="modal-head"><div><span class="eyebrow">CONVERSATION / 对话预览</span><h2 id="previewHeading">创作记录</h2></div><button class="modal-close" id="closePreviewBtn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></button></header>
+      <p class="preview-note">显示本书中你的创作/修改要求与模型正文，不显示系统提示词。</p>
+      <div class="preview-summary" id="previewSummary">0 条记录</div>
+      <div class="preview-body" id="previewBody"></div>
+    </section>
+  </div>
+
+  <div class="modal-layer" id="revisionLayer" hidden>
+    <div class="modal-scrim" data-close-revision aria-hidden="true"></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="revisionHeading">
+      <header class="modal-head"><div><span class="eyebrow">REVISION / 钢笔修改</span><h2 id="revisionHeading">想改成什么样？</h2></div><button class="modal-close" id="closeRevisionBtn" type="button" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></button></header>
+      <div class="modal-body">
+        <p class="modal-lede">模型会基于当前正文与设定重写并替换当前手稿，上一稿保留在对话预览中。</p>
+        <label class="modal-field" for="revisionInput"><span>修改要求</span><textarea id="revisionInput" maxlength="2000" spellcheck="false" placeholder="例如：结尾更克制，删掉解释，保留雨声和纸张受潮的气味。"></textarea></label>
+        <p class="modal-error" id="revisionError" role="alert"></p>
+      </div>
+      <footer class="modal-foot"><button class="modal-btn modal-btn-quiet" id="cancelRevisionBtn" type="button">取消</button><button class="modal-btn modal-btn-primary" id="submitRevisionBtn" type="button">按要求重写</button></footer>
+    </section>
+  </div>
+
+  <div class="settings-layer" id="settingsLayer" hidden>
+    <div class="settings-scrim" data-close-settings aria-hidden="true"></div>
+    <aside class="settings-sheet" id="settingsSheet" role="dialog" aria-modal="true" aria-labelledby="settingsHeading">
+      <div class="sheet-rule" aria-hidden="true"></div>
+      <header class="sheet-head"><span class="eyebrow">SETTINGS / 模型接口</span><button class="close-sheet" id="closeSettingsBtn" type="button" aria-label="关闭设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></button></header>
+      <div class="sheet-scroll">
+        <h2 id="settingsHeading">连接<br><span>你的模型。</span></h2>
+        <p class="sheet-lede">支持 OpenAI 兼容的 Chat Completions 接口。填入你自己的 API 地址、Key 和模型；配置只保存在本机浏览器。</p>
+
+        <div class="fixed-params" aria-label="固定参数">
+          <div class="fixed-head"><span>固定参数 / LOCKED</span><span>所有模型统一</span></div>
+          <div class="fixed-grid">
+            <div><span>Temperature</span><strong>0.70</strong></div>
+            <div><span>Top P</span><strong>0.90</strong></div>
+            <div><span>Top K</span><strong>50</strong></div>
+            <div><span>Frequency Penalty</span><strong>0.20</strong></div>
+            <div><span>Presence Penalty</span><strong>0.20</strong></div>
+            <div><span>Repetition Penalty</span><strong>1.00</strong></div>
+          </div>
+          <p>参数已锁定。TOP K 与 Repetition Penalty 若不被接口支持，会自动省略后兼容重试。</p>
+        </div>
+
+        <form id="settingsForm" novalidate>
+          <div class="form-field">
+            <label for="baseUrlInput"><span>接口地址</span><em>BASE URL</em></label>
+            <input id="baseUrlInput" type="url" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://api.example.com/v1">
+            <small>填写到 <code>/v1</code> 即可，也支持完整的 <code>.../chat/completions</code> 地址。</small>
+            <code class="endpoint-preview" id="endpointPreview">POST /chat/completions</code>
+          </div>
+          <div class="form-field">
+            <label for="apiKeyInput"><span>API Key</span><em>SECRET</em></label>
+            <div class="key-wrap"><input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-..."><button class="reveal-key" id="toggleKeyBtn" type="button" aria-pressed="false">显示</button></div>
+            <small>仅用于请求你填写的接口。无需鉴权的本地模型可以留空。</small>
+          </div>
+          <div class="form-field">
+            <label for="modelInput"><span>模型名称</span><em>MODEL</em></label>
+            <input id="modelInput" type="text" autocomplete="off" spellcheck="false" placeholder="例如：deepseek-chat">
+            <small>填写服务商提供的模型 ID。可先检测接口读取模型列表。</small>
+          </div>
+          <div class="remember-row"><input id="rememberKey" type="checkbox" checked><label for="rememberKey"><span>在本机记住 API Key</span><small>关闭后只保留在本次标签页，关闭页面即清除。</small></label></div>
+          <div class="form-actions"><button class="btn btn-quiet" id="testBtn" type="button">检测接口</button><button class="btn btn-primary" id="saveBtn" type="submit">保存配置</button></div>
+          <p class="settings-status" id="settingsStatus" role="status"></p>
+        </form>
+
+        <details class="note-block">
+          <summary>浏览器跨域与本地文件说明</summary>
+          <p>本页由浏览器直接请求 API。若服务商不允许跨域（CORS），请求会被拦截；这与密钥无关。请使用允许浏览器直连的接口，或把 Base URL 指向本地代理。</p>
+          <p>“检测接口”会先请求 <code>/models</code>；若服务不提供，会自动用一次极短聊天请求验证真实接口。</p>
+        </details>
+
+        <button class="forget-btn" id="forgetBtn" type="button">清除本机保存的全部书籍与草稿</button>
+      </div>
+    </aside>
+  </div>
+
+  <template id="characterTemplate">
+    <article class="character-card" data-character>
+      <div class="character-card-head"><span class="character-number" data-character-number>人物 01</span><button class="remove-character" type="button" data-remove-character aria-label="删除此人物"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
+      <div class="character-grid">
+        <label class="char-field"><span>名字</span><input type="text" data-field="name" placeholder="如：沈砚" autocomplete="off" spellcheck="false"></label>
+        <label class="char-field"><span>性别</span><input type="text" data-field="gender" placeholder="男 / 女 / 其他" autocomplete="off" spellcheck="false"></label>
+        <label class="char-field" data-field="age-field"><span>年龄</span><input type="text" data-field="age" placeholder="34" autocomplete="off" spellcheck="false"></label>
+        <label class="char-field char-full"><span>外貌描写</span><input type="text" data-field="appearance" placeholder="瘦高，眼窝很深，左手背有旧烫伤" autocomplete="off" spellcheck="false"></label>
+        <label class="char-field char-wide"><span>穿着</span><input type="text" data-field="outfit" placeholder="深灰长风衣，旧皮靴" autocomplete="off" spellcheck="false"></label>
+        <label class="char-field"><span>性格</span><input type="text" data-field="personality" placeholder="寡言，敏锐，嘴硬" autocomplete="off" spellcheck="false"></label>
+      </div>
+    </article>
+  </template>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastText"></span><button id="toastAction" type="button" hidden></button></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const FIXED_PARAMS = Object.freeze({
+        temperature: 0.7,
+        top_p: 0.9,
+        top_k: 50,
+        frequency_penalty: 0.2,
+        presence_penalty: 0.2,
+        repetition_penalty: 1.0
+      });
+      const STORAGE = Object.freeze({
+        library: 'xuye.pwa.library.v1',
+        settings: 'xuye.pwa.settings.v1',
+        key: 'xuye.pwa.key.v1'
+      });
+      const MAX_CHARACTERS = 12;
+      const MAX_HISTORY = 80;
+
+      const SYSTEM_PROMPT = [
+        '你是一位敏锐、克制的中文小说作者，在「叙野」手机写作台上工作。',
+        '',
+        '【最高优先级：完整吸收设定】',
+        '1. 用户提供的前情提要、人物背景、本章情节与写作要求，全部都是本次创作的约束，必须自然融入正文。',
+        '2. 已记忆剧情是既定事实。若它与其他背景信息冲突，以记忆为准，并从记忆结束之处继续。',
+        '3. 本章情节必须按给定方向发生，不得跳过核心事件、替换冲突或改成无关故事。',
+        '4. 人物设定必须保持一致。只把已列出的人物作为主要角色，不擅自新增主要人物、改变人物关系或篡改人物经历。',
+        '',
+        '【相关性】',
+        '5. 只写与设定和情节直接相关的小说正文。不得加入无关人物、支线、番外、评论或作者说明。',
+        '6. 不得为了凑字数偏离核心冲突。',
+        '7. 信息不足时，只在已给设定范围内做最少量的合理补全。',
+        '',
+        '【输出纪律】',
+        '8. 直接开始小说正文。不要输出标题（用户明确要求时除外）、提纲、分析、建议、寒暄、说明、免责声明或任何元话语。',
+        '9. 不要使用 Markdown、项目符号、小标题或代码块；用自然段落写作。',
+        '10. 不要复述提示词或已记忆内容，不要写“好的”“以下是”之类的开场白。',
+        '11. 保持叙事连贯、场景具体，用动作、感官与细节推进故事。',
+        '',
+        '【篇幅与修改】',
+        '12. 写作要求优先决定文风、视角、节奏和篇幅；没有明确要求时，写一个完整场景，约 1200 至 1800 字。',
+        '13. 续写、扩写或改写时，严格延续已有文本的设定、语气、人称与时间线。',
+        '14. 修改当前正文时，必须保留人物、情节和设定连续性，按修改要求重写完整正文，只输出修改后的正文。'
+      ].join('\n');
+
+      const $ = (id) => document.getElementById(id);
+      const el = {
+        shelfView: $('shelfView'), studioView: $('studioView'),
+        shelfConnection: $('shelfConnection'), shelfConnectionText: $('shelfConnectionText'), shelfSettingsBtn: $('shelfSettingsBtn'),
+        bookGrid: $('bookGrid'), libraryStats: $('libraryStats'), shelfDate: $('shelfDate'), installHint: $('installHint'),
+        backToShelfBtn: $('backToShelfBtn'), studioBookTitle: $('studioBookTitle'),
+        studioConnection: $('studioConnection'), studioConnectionText: $('studioConnectionText'), studioSettingsBtn: $('studioSettingsBtn'),
+        leftScroll: $('leftScroll'), premiseInput: $('premiseInput'), plotInput: $('plotInput'), requirementsInput: $('requirementsInput'),
+        characterCount: $('characterCount'), characterList: $('characterList'), characterEmpty: $('characterEmpty'), characterTemplate: $('characterTemplate'),
+        addCharacterBtn: $('addCharacterBtn'), addCharacterEmptyBtn: $('addCharacterEmptyBtn'),
+        generateBtn: $('generateBtn'), generateLabel: $('generateLabel'), generateArrow: $('generateArrow'), stopIcon: $('stopIcon'),
+        previewBtn: $('previewBtn'), copyBtn: $('copyBtn'), downloadBtn: $('downloadBtn'), clearBtn: $('clearBtn'),
+        paperDate: $('paperDate'), paperWords: $('paperWords'), paperBody: $('paperBody'), output: $('output'),
+        emptyState: $('emptyState'), emptyTitle: $('emptyTitle'), emptyCopy: $('emptyCopy'), emptyConfigBtn: $('emptyConfigBtn'),
+        errorBox: $('errorBox'), errorText: $('errorText'), retryBtn: $('retryBtn'),
+        memoryInput: $('memoryInput'), memoryBtn: $('memoryBtn'), memoryClearBtn: $('memoryClearBtn'), memoryMeta: $('memoryMeta'), memoryDock: $('memoryDock'),
+        penBtn: $('penBtn'), statusDot: $('statusDot'), statusText: $('statusText'), modelLabel: $('modelLabel'), mobileStopBtn: $('mobileStopBtn'),
+        mobileTabs: document.querySelector('.mobile-tabs'),
+        newBookLayer: $('newBookLayer'), newBookTitleInput: $('newBookTitleInput'), newBookError: $('newBookError'), createBookBtn: $('createBookBtn'), cancelNewBookBtn: $('cancelNewBookBtn'), closeNewBookBtn: $('closeNewBookBtn'),
+        previewLayer: $('previewLayer'), previewBody: $('previewBody'), previewSummary: $('previewSummary'), closePreviewBtn: $('closePreviewBtn'),
+        revisionLayer: $('revisionLayer'), revisionInput: $('revisionInput'), revisionError: $('revisionError'), submitRevisionBtn: $('submitRevisionBtn'), cancelRevisionBtn: $('cancelRevisionBtn'), closeRevisionBtn: $('closeRevisionBtn'),
+        settingsLayer: $('settingsLayer'), settingsSheet: $('settingsSheet'), closeSettingsBtn: $('closeSettingsBtn'), settingsForm: $('settingsForm'),
+        baseUrlInput: $('baseUrlInput'), apiKeyInput: $('apiKeyInput'), modelInput: $('modelInput'), rememberKey: $('rememberKey'),
+        endpointPreview: $('endpointPreview'), toggleKeyBtn: $('toggleKeyBtn'), testBtn: $('testBtn'), settingsStatus: $('settingsStatus'), forgetBtn: $('forgetBtn'),
+        toast: $('toast'), toastText: $('toastText'), toastAction: $('toastAction')
+      };
+
+      const state = {
+        config: { baseUrl: '', model: '', apiKey: '', remember: true },
+        hasConfig: false,
+        library: { version: 1, books: [] },
+        activeBookId: null,
+        output: '', error: '', history: [],
+        generating: false, controller: null, phase: 'idle', startedAt: 0, timer: null,
+        renderQueued: false, draftTimer: null, toastTimer: null,
+        settingsOpen: false, settingsHideTimer: null, lastFocused: null,
+        lastRun: { revision: '' }, mobileTab: 'settings'
+      };
+
+      /* ---------- storage ---------- */
+      function getStore(store, key) { try { return store.getItem(key); } catch (e) { return null; } }
+      function setStore(store, key, value) { try { store.setItem(key, value); return true; } catch (e) { return false; } }
+      function removeStore(store, key) { try { store.removeItem(key); } catch (e) {} }
+      function readJSON(store, key) { const raw = getStore(store, key); if (!raw) return null; try { return JSON.parse(raw); } catch (e) { return null; } }
+
+      /* ---------- helpers ---------- */
+      function countText(t) { return (t || '').replace(/\s/g, '').length; }
+      function fmt(n) { return Number(n || 0).toLocaleString('zh-CN'); }
+      function pad(n) { return String(n).padStart(4, '0'); }
+      function today() { const d = new Date(); return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`; }
+      function timeLabel(t) { const d = new Date(t); if (Number.isNaN(d.getTime())) return ''; return `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+      function elapsed() { return state.startedAt ? Math.max(0, (performance.now() - state.startedAt) / 1000).toFixed(1) : '0.0'; }
+      function normalizeBase(raw) { return String(raw || '').trim().replace(/\/+$/, ''); }
+      function isUrl(v) { try { const u = new URL(v); return u.protocol === 'http:' || u.protocol === 'https:'; } catch (e) { return false; } }
+      function chatEndpoint(raw) { const b = normalizeBase(raw); if (!b) return ''; if (/\/chat\/completions$/i.test(b)) return b; if (/\/v1$/i.test(b)) return `${b}/chat/completions`; return `${b}/v1/chat/completions`; }
+      function modelsEndpoint(raw) { return chatEndpoint(raw).replace(/\/chat\/completions$/i, '/models'); }
+      function uid() { return `book-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`; }
+      function setStatus(text, mode = 'idle') { el.statusText.textContent = text; el.statusDot.dataset.state = mode; }
+
+      /* ---------- tabs ---------- */
+      function setMobileTab(tab, scroll = false) {
+        state.mobileTab = tab;
+        el.studioView.classList.toggle('studio-tab-settings', tab === 'settings');
+        el.studioView.classList.toggle('studio-tab-manuscript', tab === 'manuscript');
+        el.mobileTabs.querySelectorAll('[data-mobile-tab]').forEach((button) => {
+          button.classList.toggle('is-active', button.dataset.mobileTab === tab);
+        });
+        if (scroll) {
+          if (tab === 'settings') el.leftScroll.scrollTop = 0;
+          else el.paperBody.scrollTop = el.paperBody.scrollHeight;
+        }
+      }
+
+      /* ---------- characters ---------- */
+      function appendCharacter(data = {}) {
+        const card = el.characterTemplate.content.firstElementChild.cloneNode(true);
+        ['name', 'gender', 'age', 'appearance', 'outfit', 'personality'].forEach((field) => {
+          const input = card.querySelector(`[data-field="${field}"]`);
+          if (input) input.value = typeof data[field] === 'string' ? data[field] : '';
+        });
+        el.characterList.appendChild(card);
+        return card;
+      }
+      function charactersFromDOM() {
+        return [...el.characterList.querySelectorAll('[data-character]')].map((card) => {
+          const read = (field) => {
+            const input = card.querySelector(`[data-field="${field}"]`);
+            return input ? input.value.trim() : '';
+          };
+          return { name: read('name'), gender: read('gender'), age: read('age'), appearance: read('appearance'), outfit: read('outfit'), personality: read('personality') };
+        });
+      }
+      function promptCharacters() { return charactersFromDOM().filter((c) => Object.values(c).some(Boolean)); }
+      function updateCharacterMeta() {
+        const cards = [...el.characterList.querySelectorAll('[data-character]')];
+        cards.forEach((card, i) => {
+          const n = card.querySelector('[data-character-number]');
+          if (n) n.textContent = `人物 ${String(i + 1).padStart(2, '0')}`;
+        });
+        el.characterCount.textContent = `${cards.length} 位`;
+        el.characterEmpty.hidden = cards.length > 0;
+      }
+      function renderCharacters(list) {
+        el.characterList.replaceChildren();
+        (Array.isArray(list) ? list : []).forEach((c) => appendCharacter(c));
+        updateCharacterMeta();
+      }
+      function addCharacter(data = {}, focus = true) {
+        if (el.characterList.querySelectorAll('[data-character]').length >= MAX_CHARACTERS) { showToast(`最多 ${MAX_CHARACTERS} 位人物`); return null; }
+        const card = appendCharacter(data);
+        updateCharacterMeta();
+        saveBook();
+        if (focus) {
+          const input = card.querySelector('[data-field="name"]');
+          if (input) {
+            el.leftScroll.scrollTop = el.leftScroll.scrollHeight;
+            setTimeout(() => input.focus({ preventScroll: true }), 30);
+          }
+        }
+        return card;
+      }
+      function removeCharacter(button) {
+        const card = button.closest('[data-character]');
+        if (!card) return;
+        card.remove();
+        updateCharacterMeta();
+        saveBook();
+      }
+
+      /* ---------- books ---------- */
+      function normalizeBook(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        return {
+          version: 1,
+          id: typeof raw.id === 'string' && raw.id ? raw.id : uid(),
+          title: typeof raw.title === 'string' && raw.title.trim() ? raw.title.trim().slice(0, 60) : '未命名书稿',
+          createdAt: Number(raw.createdAt) || Date.now(),
+          updatedAt: Number(raw.updatedAt) || Date.now(),
+          premise: typeof raw.premise === 'string' ? raw.premise.slice(0, 8000) : '',
+          plot: typeof raw.plot === 'string' ? raw.plot.slice(0, 8000) : '',
+          requirements: typeof raw.requirements === 'string' ? raw.requirements.slice(0, 6000) : '',
+          characters: Array.isArray(raw.characters) ? raw.characters.slice(0, MAX_CHARACTERS).map((c) => ({
+            name: typeof c?.name === 'string' ? c.name : '',
+            gender: typeof c?.gender === 'string' ? c.gender : '',
+            age: typeof c?.age === 'string' ? c.age : '',
+            appearance: typeof c?.appearance === 'string' ? c.appearance : '',
+            outfit: typeof c?.outfit === 'string' ? c.outfit : '',
+            personality: typeof c?.personality === 'string' ? c.personality : ''
+          })) : [],
+          output: typeof raw.output === 'string' ? raw.output : '',
+          memoryText: typeof raw.memoryText === 'string' ? raw.memoryText.slice(0, 20000) : '',
+          history: Array.isArray(raw.history) ? raw.history.filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim()).slice(-MAX_HISTORY).map((m) => ({ role: m.role, content: m.content.trim(), at: Number(m.at) || Date.now() })) : []
+        };
+      }
+      function loadLibrary() {
+        const saved = readJSON(localStorage, STORAGE.library);
+        return { version: 1, books: Array.isArray(saved?.books) ? saved.books.map(normalizeBook).filter(Boolean) : [] };
+      }
+      function persistLibrary() { setStore(localStorage, STORAGE.library, JSON.stringify(state.library)); }
+      function saveBook() {
+        if (!state.activeBookId) return;
+        const book = state.library.books.find((b) => b.id === state.activeBookId);
+        if (!book) return;
+        book.premise = el.premiseInput.value;
+        book.plot = el.plotInput.value;
+        book.requirements = el.requirementsInput.value;
+        book.characters = charactersFromDOM();
+        book.output = state.output;
+        book.memoryText = el.memoryInput.value;
+        book.history = state.history;
+        book.updatedAt = Date.now();
+        persistLibrary();
+      }
+      function scheduleSave() { clearTimeout(state.draftTimer); state.draftTimer = setTimeout(saveBook, 420); }
+
+      function renderShelf() {
+        const books = [...state.library.books].sort((a, b) => b.updatedAt - a.updatedAt);
+        const total = books.reduce((s, b) => s + countText(b.output), 0);
+        el.libraryStats.textContent = `${books.length} 本书 · ${fmt(total)} 字`;
+        el.shelfDate.textContent = today();
+        el.bookGrid.replaceChildren();
+        if (!books.length) {
+          const note = document.createElement('div');
+          note.className = 'book-slot';
+          note.style.paddingTop = '0';
+          note.style.gridColumn = '1 / -1';
+          note.style.color = 'var(--muted)';
+          note.style.fontFamily = 'var(--serif)';
+          note.style.fontSize = '12px';
+          note.style.lineHeight = '1.8';
+          note.textContent = '书架还是空的。点下面的「添加书籍」，为故事建一个独立文件夹。';
+          el.bookGrid.appendChild(note);
+        }
+        books.forEach((book, i) => {
+          const slot = document.createElement('div'); slot.className = 'book-slot';
+          const card = document.createElement('button'); card.type = 'button'; card.className = 'book-card'; card.dataset.bookId = book.id; card.dataset.tone = String(i % 3);
+          const label = document.createElement('span'); label.className = 'book-label'; label.textContent = `BOOK ${String(i+1).padStart(2, '0')}`;
+          const title = document.createElement('strong'); title.className = 'book-title'; title.textContent = book.title;
+          const meta = document.createElement('span'); meta.className = 'book-meta'; meta.textContent = `${fmt(countText(book.output))} 字 · ${timeLabel(book.updatedAt)}`;
+          const seal = document.createElement('span'); seal.className = 'book-seal'; seal.textContent = '叙'; seal.setAttribute('aria-hidden', 'true');
+          card.append(label, title, meta, seal);
+          const del = document.createElement('button'); del.type = 'button'; del.className = 'book-delete'; del.dataset.deleteBook = book.id; del.setAttribute('aria-label', `删除《${book.title}》`);
+          del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg>';
+          slot.append(card, del);
+          el.bookGrid.appendChild(slot);
+        });
+        const slot = document.createElement('div'); slot.className = 'book-slot';
+        const add = document.createElement('button'); add.type = 'button'; add.className = 'add-book-card'; add.dataset.addBook = 'true';
+        add.innerHTML = '<span class="add-book-icon" aria-hidden="true">+</span><strong>添加书籍</strong><small>新建一个故事文件夹</small>';
+        slot.appendChild(add);
+        el.bookGrid.appendChild(slot);
+      }
+
+      function openNewBook() {
+        el.newBookTitleInput.value = '';
+        el.newBookError.textContent = '';
+        el.newBookLayer.hidden = false;
+        setTimeout(() => el.newBookTitleInput.focus({ preventScroll: true }), 70);
+      }
+      function closeNewBook() { el.newBookLayer.hidden = true; }
+      function createBook() {
+        const title = el.newBookTitleInput.value.trim();
+        if (!title) { el.newBookError.textContent = '请给这本书起一个名字。'; el.newBookTitleInput.focus(); return; }
+        const now = Date.now();
+        const book = normalizeBook({ id: uid(), title, createdAt: now, updatedAt: now });
+        state.library.books.push(book);
+        persistLibrary();
+        closeNewBook();
+        openBook(book.id);
+        showToast(`已创建《${book.title}》`);
+      }
+      function deleteBook(id) {
+        const book = state.library.books.find((b) => b.id === id);
+        if (!book) return;
+        if (!confirm(`删除《${book.title}》及其全部设定、记忆和对话记录？无法恢复。`)) return;
+        state.library.books = state.library.books.filter((b) => b.id !== id);
+        persistLibrary();
+        renderShelf();
+        showToast(`已删除《${book.title}》`);
+      }
+      function openBook(id) {
+        const book = state.library.books.find((b) => b.id === id);
+        if (!book) return;
+        hideToast();
+        state.activeBookId = id;
+        state.output = book.output || '';
+        state.error = '';
+        state.history = book.history.slice();
+        if (!state.history.length && state.output.trim()) state.history = [{ role: 'assistant', content: state.output, at: book.updatedAt }];
+        el.premiseInput.value = book.premise;
+        el.plotInput.value = book.plot;
+        el.requirementsInput.value = book.requirements;
+        el.memoryInput.value = book.memoryText;
+        el.memoryInput.disabled = false;
+        renderCharacters(book.characters);
+        if (!el.characterList.querySelector('[data-character]')) addCharacter({}, false);
+        el.studioBookTitle.textContent = book.title;
+        el.paperDate.textContent = today();
+        el.studioView.hidden = false;
+        el.shelfView.hidden = true;
+        document.title = `${book.title} · 叙野`;
+        el.leftScroll.scrollTop = 0;
+        el.paperBody.scrollTop = 0;
+        syncConnection();
+        updateCounts();
+        updateMemoryMeta();
+        renderOutput();
+        updateActions();
+        setStatus(state.output.trim() ? '继续上次手稿' : '等待灵感', state.output.trim() ? 'done' : 'idle');
+        setMobileTab(state.output.trim() ? 'manuscript' : 'settings');
+        saveBook();
+      }
+      function backToShelf() {
+        if (state.generating) { showToast('请先停止生成，再回书架'); return; }
+        hideToast();
+        saveBook();
+        state.activeBookId = null;
+        state.history = [];
+        el.memoryInput.disabled = false;
+        el.studioView.hidden = true;
+        el.shelfView.hidden = false;
+        document.title = '叙野 · 故事书架';
+        renderShelf();
+        el.shelfView.scrollTop = 0;
+      }
+
+      /* ---------- memory ---------- */
+      function memoryText() { return el.memoryInput.value.trim(); }
+      function updateMemoryMeta() {
+        const n = countText(el.memoryInput.value);
+        el.memoryMeta.textContent = `${fmt(n)} 字 · 可编辑`;
+        el.memoryDock.textContent = n ? `记忆 ${fmt(n)} 字` : '未记忆剧情';
+        el.memoryInput.disabled = state.generating;
+        el.memoryBtn.disabled = !state.output.trim() || state.generating;
+        el.memoryClearBtn.disabled = !n || state.generating;
+        syncEmptyState();
+      }
+      function memorize() {
+        if (state.generating) return;
+        const text = state.output.trim();
+        if (!text) { showToast('先生成一段正文'); return; }
+        const current = el.memoryInput.value.trim();
+        if (current.includes(text)) { showToast('这段正文已在记忆区'); return; }
+        const marker = `—— 记忆 ${timeLabel(Date.now())} ——`;
+        el.memoryInput.value = current ? `${current}\n\n${marker}\n${text}` : `${marker}\n${text}`;
+        updateMemoryMeta();
+        saveBook();
+        showToast(`已记忆 ${fmt(countText(text))} 字`);
+      }
+      function clearMemory() {
+        if (!el.memoryInput.value.trim() || state.generating) return;
+        const old = el.memoryInput.value;
+        el.memoryInput.value = '';
+        updateMemoryMeta();
+        saveBook();
+        showToast('记忆已清空', '撤销', () => { el.memoryInput.value = old; updateMemoryMeta(); saveBook(); });
+      }
+
+      /* ---------- output ---------- */
+      function updateCounts() { el.paperWords.textContent = `${pad(countText(state.output))} 字`; }
+      function updateActions() {
+        const has = Boolean(state.output.trim());
+        el.copyBtn.disabled = !has;
+        el.downloadBtn.disabled = !has;
+        el.clearBtn.disabled = !has || state.generating;
+        el.memoryBtn.disabled = !has || state.generating;
+        el.penBtn.disabled = !has || state.generating;
+        el.memoryClearBtn.disabled = !el.memoryInput.value.trim() || state.generating;
+        el.mobileStopBtn.hidden = !state.generating;
+      }
+      function syncEmptyState() {
+        const has = Boolean(state.output.trim());
+        el.emptyState.hidden = has || Boolean(state.error);
+        if (el.emptyState.hidden) return;
+        if (state.generating) {
+          el.emptyTitle.textContent = '正在落笔。';
+          el.emptyCopy.textContent = memoryText() ? '正在读取设定与记忆区，第一段文字很快落下。' : '正在读取故事档案，第一段文字很快落下。';
+          el.emptyConfigBtn.hidden = true;
+          return;
+        }
+        el.emptyConfigBtn.hidden = false;
+        if (memoryText()) {
+          el.emptyTitle.textContent = '记忆已就位。';
+          el.emptyCopy.textContent = '写下接下来的情节，或直接生成。故事会从上方记忆区的结尾继续。';
+        } else {
+          el.emptyTitle.textContent = '这一章，尚未落笔。';
+          el.emptyCopy.textContent = '填好故事设定，生成第一段正文。生成后可把剧情放进上方记忆区，或用下方钢笔继续修改。';
+        }
+        const label = el.emptyConfigBtn.querySelector('span');
+        if (label) label.textContent = state.hasConfig ? '调整模型设置' : '先连接模型';
+      }
+      function setGenerating(value) {
+        state.generating = value;
+        el.generateBtn.classList.toggle('is-generating', value);
+        el.generateLabel.textContent = value ? '停止生成' : '生成正文';
+        el.generateBtn.setAttribute('aria-label', value ? '停止生成' : '生成正文');
+        el.generateArrow.hidden = value;
+        el.stopIcon.hidden = !value;
+        el.output.classList.toggle('is-streaming', value);
+        el.memoryInput.disabled = value;
+        el.forgetBtn.disabled = value;
+        updateActions();
+        updateMemoryMeta();
+        syncEmptyState();
+      }
+      function queueRender() {
+        if (state.renderQueued) return;
+        state.renderQueued = true;
+        requestAnimationFrame(() => { state.renderQueued = false; renderOutput(); });
+      }
+      function renderOutput(force = false) {
+        const near = el.paperBody.scrollHeight - el.paperBody.scrollTop - el.paperBody.clientHeight < 100;
+        const fragment = document.createDocumentFragment();
+        if (state.output.trim()) {
+          state.output.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split(/\n+/).forEach((chunk) => {
+            const t = chunk.trim();
+            if (!t) return;
+            const p = document.createElement('p');
+            p.textContent = t;
+            fragment.appendChild(p);
+          });
+        }
+        el.output.replaceChildren(fragment);
+        el.output.classList.toggle('is-streaming', state.generating);
+        el.errorBox.hidden = !state.error;
+        if (state.error) el.errorText.textContent = state.error;
+        syncEmptyState();
+        updateCounts();
+        updateActions();
+        if (force || (state.generating && near)) el.paperBody.scrollTop = el.paperBody.scrollHeight;
+      }
+
+      /* ---------- config ---------- */
+      function loadConfig() {
+        const saved = readJSON(localStorage, STORAGE.settings);
+        const remember = saved ? saved.remember !== false : true;
+        const localKey = getStore(localStorage, STORAGE.key) || '';
+        const sessionKey = getStore(sessionStorage, STORAGE.key) || '';
+        state.config = {
+          baseUrl: saved?.baseUrl || '',
+          model: saved?.model || '',
+          remember,
+          apiKey: remember ? (localKey || sessionKey) : (sessionKey || '')
+        };
+        state.hasConfig = Boolean(state.config.baseUrl && state.config.model);
+      }
+      function saveConfig() {
+        setStore(localStorage, STORAGE.settings, JSON.stringify({ baseUrl: state.config.baseUrl, model: state.config.model, remember: state.config.remember }));
+        if (state.config.remember) {
+          if (state.config.apiKey) setStore(localStorage, STORAGE.key, state.config.apiKey); else removeStore(localStorage, STORAGE.key);
+          removeStore(sessionStorage, STORAGE.key);
+        } else {
+          if (state.config.apiKey) setStore(sessionStorage, STORAGE.key, state.config.apiKey); else removeStore(sessionStorage, STORAGE.key);
+          removeStore(localStorage, STORAGE.key);
+        }
+      }
+      function readForm() {
+        const baseUrl = normalizeBase(el.baseUrlInput.value);
+        const model = el.modelInput.value.trim();
+        const apiKey = el.apiKeyInput.value.trim();
+        if (!baseUrl) throw new Error('请填写接口地址 Base URL。');
+        if (!isUrl(baseUrl)) throw new Error('接口地址需要以 http:// 或 https:// 开头。');
+        if (!model) throw new Error('请填写模型名称。');
+        return { baseUrl, model, apiKey };
+      }
+      function syncSettingsForm() {
+        el.baseUrlInput.value = state.config.baseUrl;
+        el.modelInput.value = state.config.model;
+        el.apiKeyInput.value = state.config.apiKey || '';
+        el.rememberKey.checked = state.config.remember !== false;
+        el.apiKeyInput.type = 'password';
+        el.toggleKeyBtn.textContent = '显示';
+        el.toggleKeyBtn.setAttribute('aria-pressed', 'false');
+        updateEndpointPreview();
+        setSettingsStatus('');
+      }
+      function updateEndpointPreview() {
+        const raw = normalizeBase(el.baseUrlInput.value);
+        el.endpointPreview.textContent = raw ? `POST ${chatEndpoint(raw)}` : 'POST /chat/completions';
+      }
+      function syncConnection() {
+        const ready = Boolean(state.hasConfig && state.config.baseUrl && state.config.model);
+        const text = ready ? (state.config.apiKey ? 'API 已配置' : '接口已配置') : 'API 未配置';
+        [el.shelfConnection, el.studioConnection].forEach((pill) => {
+          if (!pill) return;
+          pill.classList.toggle('is-ready', ready);
+          pill.title = ready ? `${state.config.model} · ${chatEndpoint(state.config.baseUrl)}` : '点击「设置」配置模型接口';
+        });
+        el.shelfConnectionText.textContent = text;
+        el.studioConnectionText.textContent = text;
+        el.modelLabel.textContent = ready ? state.config.model : '未配置模型';
+        el.modelLabel.title = ready ? state.config.model : '';
+        const label = el.emptyConfigBtn.querySelector('span');
+        if (label) label.textContent = ready ? '调整模型设置' : '先连接模型';
+        syncEmptyState();
+      }
+      function setSettingsStatus(text, type = '') { el.settingsStatus.textContent = text; el.settingsStatus.dataset.type = type; }
+
+      function openSettings() {
+        state.lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        syncSettingsForm();
+        clearTimeout(state.settingsHideTimer);
+        el.settingsLayer.hidden = false;
+        state.settingsOpen = true;
+        requestAnimationFrame(() => el.settingsLayer.classList.add('is-open'));
+        setTimeout(() => { if (state.settingsOpen) el.baseUrlInput.focus({ preventScroll: true }); }, 180);
+      }
+      function closeSettings() {
+        if (!state.settingsOpen) return;
+        state.settingsOpen = false;
+        el.settingsLayer.classList.remove('is-open');
+        const delay = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 320;
+        clearTimeout(state.settingsHideTimer);
+        state.settingsHideTimer = setTimeout(() => {
+          if (state.settingsOpen) return;
+          el.settingsLayer.hidden = true;
+          if (state.lastFocused && document.contains(state.lastFocused)) state.lastFocused.focus({ preventScroll: true });
+        }, delay);
+      }
+
+      /* ---------- prompt ---------- */
+      function characterBlock() {
+        const chars = promptCharacters();
+        if (!chars.length) return '';
+        return chars.map((c, i) => [`人物 ${i+1}`, `名字：${c.name || '未设定'}`, `性别：${c.gender || '未设定'}`, `年龄：${c.age || '未设定'}`, `外貌：${c.appearance || '未设定'}`, `穿着：${c.outfit || '未设定'}`, `性格：${c.personality || '未设定'}`].join('\n')).join('\n\n');
+      }
+      function commonSections(plot) {
+        const sections = [];
+        const premise = el.premiseInput.value.trim();
+        const reqs = el.requirementsInput.value.trim();
+        const chars = characterBlock();
+        const memory = memoryText();
+        if (premise) sections.push(`【前情提要】\n${premise}`);
+        if (chars) sections.push(`【人物背景】\n${chars}\n\n人物设定必须保持一致；不要擅自新增主要人物或改变人物关系。`);
+        if (memory) sections.push(`【已记忆剧情｜必须承接】\n${memory}\n\n从记忆结尾处继续，不得改写、压缩、跳过或复述已记忆内容。`);
+        sections.push(`【本章情节】\n${plot || '未额外指定。请从已记忆剧情的结尾自然续写，推进人物处境，不要另起炉灶。'}`);
+        if (reqs) sections.push(`【写作要求】\n${reqs}`);
+        return sections;
+      }
+      function buildUserMessage(plot) {
+        const s = commonSections(plot);
+        s.push('【输出要求】\n只写与以上设定和情节直接相关的小说正文。直接开始叙事，不要复述提示，不要添加任何说明。');
+        return s.join('\n\n');
+      }
+      function buildRevisionMessage(current, revision) {
+        const s = commonSections(el.plotInput.value.trim());
+        s.push(`【当前正文｜需要修改】\n${current}`);
+        s.push(`【本次修改要求】\n${revision}`);
+        s.push('【输出要求】\n保留人物、设定与情节连续性，按修改要求重写完整正文。只输出修改后的完整正文，不要解释。');
+        return s.join('\n\n');
+      }
+      function turnUser(plot, revision) {
+        if (revision) {
+          const parts = [`【修改要求】\n${revision}`, '（基于上一稿重写）'];
+          if (memoryText()) parts.push(`【已接入剧情记忆】${fmt(countText(memoryText()))} 字`);
+          return parts.join('\n\n');
+        }
+        const parts = [];
+        if (plot) parts.push(`【本章情节】\n${plot}`);
+        const reqs = el.requirementsInput.value.trim();
+        if (reqs) parts.push(`【写作要求】\n${reqs}`);
+        const names = promptCharacters().map((c) => c.name).filter(Boolean);
+        if (names.length) parts.push(`【人物】${names.join('、')}`);
+        if (memoryText()) parts.push(`【已接入剧情记忆】${fmt(countText(memoryText()))} 字`);
+        return parts.join('\n\n') || '承接记忆继续写作。';
+      }
+
+      /* ---------- errors ---------- */
+      function errorDetail(raw) {
+        if (!raw) return '';
+        let detail = '';
+        try {
+          const p = JSON.parse(raw);
+          const e = p.error;
+          if (typeof e === 'string') detail = e;
+          else if (e) {
+            if (typeof e.message === 'string') detail = e.message;
+            if (e.metadata && typeof e.metadata.raw === 'string') {
+              const up = e.metadata.raw.trim();
+              detail = detail && !up.includes(detail) ? `${detail} — ${up}` : up;
+            }
+          } else if (typeof p.message === 'string') detail = p.message;
+        } catch (e) { detail = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
+        detail = detail.trim();
+        return detail.length > 640 ? `${detail.slice(0, 640)}…` : detail;
+      }
+      function httpError(status, raw) {
+        const hints = { 400: '请求格式被接口拒绝。', 401: 'API Key 无效或没有访问权限。', 403: '接口拒绝访问。', 404: '接口路径不存在。', 408: '接口请求超时。', 422: '请求参数无法处理。', 429: '请求过于频繁，或模型上游暂时限流。', 500: '模型服务内部错误。', 502: '模型网关没有正常响应。', 503: '模型服务暂时不可用。' };
+        const base = hints[status] || `请求失败（HTTP ${status}）。`;
+        const d = errorDetail(raw);
+        return d ? `${base} ${d}` : base;
+      }
+      function humanError(error) {
+        let msg = error?.message || String(error || '未知错误');
+        if (/Failed to fetch|NetworkError|Load failed|fetch failed|Network request failed/i.test(msg)) {
+          msg = '无法连接接口。请检查 Base URL、网络，以及服务商是否允许浏览器跨域（CORS）。';
+          if (location.protocol === 'file:') msg += ' 当前以本地文件打开；PWA 请通过 HTTPS 部署后再使用。';
+        }
+        return msg;
+      }
+      function extensionError(raw) { return /top_k|repetition_penalty|repeat_penalty/i.test(raw || ''); }
+
+      /* ---------- streaming ---------- */
+      async function consumeStream(response, onDelta) {
+        if (!response.body) { const text = await response.text(); if (text.trim()) onDelta(text); return; }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        let saw = false;
+        const handle = (raw) => {
+          const line = raw.replace(/\r$/, '').trim();
+          if (!line || line.startsWith(':') || !line.startsWith('data:')) return;
+          const payload = line.slice(5).trim();
+          if (!payload) return;
+          saw = true;
+          if (payload === '[DONE]') return;
+          let data;
+          try { data = JSON.parse(payload); } catch (e) { return; }
+          if (data.error) throw new Error(errorDetail(JSON.stringify(data)) || '模型返回了错误。');
+          const choice = data.choices?.[0];
+          if (!choice) return;
+          let delta = choice.delta?.content;
+          if (Array.isArray(delta)) delta = delta.map((p) => typeof p?.text === 'string' ? p.text : '').join('');
+          if (typeof delta === 'string' && delta) { onDelta(delta); return; }
+          if (typeof choice.text === 'string' && choice.text) onDelta(choice.text);
+        };
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let idx;
+          while ((idx = buffer.indexOf('\n')) !== -1) { handle(buffer.slice(0, idx)); buffer = buffer.slice(idx + 1); }
+        }
+        buffer += decoder.decode();
+        if (buffer.trim()) handle(buffer);
+        if (!saw && !state.output) throw new Error('接口没有返回可解析的流式内容。请确认兼容 OpenAI Chat Completions。');
+      }
+      function extractText(data) {
+        const c = data?.choices?.[0];
+        if (!c) return '';
+        if (typeof c.message?.content === 'string') return c.message.content;
+        if (Array.isArray(c.message?.content)) return c.message.content.map((p) => p?.text || '').join('');
+        return typeof c.text === 'string' ? c.text : '';
+      }
+
+      /* ---------- generation ---------- */
+      async function sendRequest(endpoint, payload, signal) {
+        const headers = { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' };
+        if (state.config.apiKey) headers.Authorization = `Bearer ${state.config.apiKey}`;
+        let response = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(payload), signal });
+        if (response.ok) return response;
+        let raw = await response.text();
+        if ((response.status === 400 || response.status === 422) && extensionError(raw)) {
+          const fallback = { ...payload };
+          delete fallback.top_k;
+          delete fallback.repetition_penalty;
+          setStatus('接口不支持扩展参数，正在重试', 'working');
+          showToast('接口未接受 TOP K / 重复惩罚，已省略后重试');
+          response = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(fallback), signal });
+          if (response.ok) return response;
+          raw = await response.text();
+        }
+        throw new Error(httpError(response.status, raw));
+      }
+      function startClock() {
+        stopClock();
+        state.startedAt = performance.now();
+        state.timer = setInterval(() => {
+          if (!state.generating) return;
+          const s = Math.max(1, Math.floor((performance.now() - state.startedAt) / 1000));
+          setStatus(`${state.phase === 'connecting' ? '正在连接模型' : '正在书写'} · ${s}s`, 'working');
+        }, 1000);
+      }
+      function stopClock() { if (state.timer) { clearInterval(state.timer); state.timer = null; } }
+      async function generateOrStop() {
+        if (state.generating) { state.controller?.abort(); return; }
+        await startGeneration();
+      }
+      function recordTurn(userContent, assistantContent) {
+        if (!userContent || !assistantContent.trim()) return;
+        const at = Date.now();
+        state.history.push({ role: 'user', content: userContent.trim(), at });
+        state.history.push({ role: 'assistant', content: assistantContent.trim(), at: at + 1 });
+        if (state.history.length > MAX_HISTORY) state.history = state.history.slice(-MAX_HISTORY);
+        saveBook();
+      }
+      async function startGeneration(options = {}) {
+        if (!state.activeBookId) return;
+        const revision = typeof options.revision === 'string' ? options.revision.trim() : '';
+        const plot = el.plotInput.value.trim();
+        if (!revision && !plot && !memoryText()) { el.plotInput.focus(); showToast('先写下本章情节，或填写记忆区'); if (innerWidth <= 900) setMobileTab('settings'); return; }
+        if (!state.hasConfig) { openSettings(); showToast('先在设置中填写 API 地址、Key 和模型'); return; }
+        const endpoint = chatEndpoint(state.config.baseUrl);
+        if (!endpoint) { openSettings(); showToast('接口地址不完整'); return; }
+
+        const previous = state.output;
+        state.lastRun = { revision };
+        const userTurn = turnUser(plot, revision);
+        const userMessage = revision ? buildRevisionMessage(previous.trim(), revision) : buildUserMessage(plot);
+        const payload = {
+          model: state.config.model,
+          messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: userMessage }],
+          temperature: FIXED_PARAMS.temperature,
+          top_p: FIXED_PARAMS.top_p,
+          top_k: FIXED_PARAMS.top_k,
+          frequency_penalty: FIXED_PARAMS.frequency_penalty,
+          presence_penalty: FIXED_PARAMS.presence_penalty,
+          repetition_penalty: FIXED_PARAMS.repetition_penalty,
+          max_tokens: 4096,
+          stream: true
+        };
+        state.output = '';
+        state.error = '';
+        state.phase = 'connecting';
+        setGenerating(true);
+        setStatus(revision ? '正在按修改要求重写' : '正在连接模型', 'working');
+        startClock();
+        renderOutput(true);
+        if (innerWidth <= 900) setMobileTab('manuscript');
+        const controller = new AbortController();
+        state.controller = controller;
+        try {
+          const response = await sendRequest(endpoint, payload, controller.signal);
+          state.phase = 'writing';
+          setStatus('正在书写', 'working');
+          const type = (response.headers.get('content-type') || '').toLowerCase();
+          if (type.includes('application/json') && !type.includes('event-stream')) {
+            const data = await response.json();
+            const text = extractText(data);
+            if (!text) throw new Error('接口返回了空正文。');
+            state.output = text;
+            queueRender();
+          } else {
+            await consumeStream(response, (delta) => { state.output += delta; queueRender(); updateCounts(); });
+          }
+          if (!state.output.trim()) throw new Error('模型没有返回正文。');
+          stopClock();
+          setStatus(`完成 · ${elapsed()} 秒`, 'done');
+          recordTurn(userTurn, state.output);
+          showToast(`已生成 ${fmt(countText(state.output))} 字`);
+        } catch (error) {
+          stopClock();
+          if (error?.name === 'AbortError') {
+            if (state.output.trim()) { recordTurn(userTurn, state.output); setStatus('已停止 · 保留已生成内容', 'idle'); }
+            else { state.output = previous; setStatus('已停止', 'idle'); showToast('已停止生成'); }
+          } else {
+            if (!state.output.trim()) state.output = previous;
+            state.error = humanError(error);
+            setStatus('生成中断', 'error');
+            showToast('生成失败，查看手稿下方提示');
+          }
+        } finally {
+          state.controller = null;
+          state.phase = 'idle';
+          setGenerating(false);
+          renderOutput();
+          updateMemoryMeta();
+          saveBook();
+        }
+      }
+
+      /* ---------- preview / revision ---------- */
+      function renderPreview() {
+        el.previewBody.replaceChildren();
+        const total = state.history.reduce((s, m) => s + countText(m.content), 0);
+        el.previewSummary.textContent = state.history.length ? `${state.history.length} 条记录 · ${fmt(total)} 字` : '0 条记录';
+        if (!state.history.length) {
+          const empty = document.createElement('div'); empty.className = 'preview-empty'; empty.textContent = '还没有创作记录。'; el.previewBody.appendChild(empty); return;
+        }
+        const fragment = document.createDocumentFragment();
+        state.history.forEach((m) => {
+          const turn = document.createElement('article'); turn.className = `preview-turn is-${m.role}`;
+          const role = document.createElement('div'); role.className = 'preview-role';
+          const name = document.createElement('span'); name.textContent = m.role === 'user' ? '作者 / 创作指令' : '叙野 / 模型正文';
+          const time = document.createElement('span'); time.className = 'preview-time'; time.textContent = timeLabel(m.at);
+          role.append(name, time);
+          const content = document.createElement('div'); content.className = 'preview-content'; content.textContent = m.content;
+          turn.append(role, content); fragment.appendChild(turn);
+        });
+        el.previewBody.appendChild(fragment);
+      }
+      function openPreview() { if (!state.activeBookId) return; renderPreview(); el.previewLayer.hidden = false; el.previewBody.scrollTop = 0; setTimeout(() => el.closePreviewBtn.focus({ preventScroll: true }), 60); }
+      function closePreview() { el.previewLayer.hidden = true; }
+      function openRevision() { if (!state.output.trim() || state.generating) return; el.revisionInput.value = ''; el.revisionError.textContent = ''; el.revisionLayer.hidden = false; setTimeout(() => el.revisionInput.focus({ preventScroll: true }), 60); }
+      function closeRevision() { el.revisionLayer.hidden = true; }
+      function submitRevision() {
+        const r = el.revisionInput.value.trim();
+        if (!r) { el.revisionError.textContent = '请写下希望如何修改。'; el.revisionInput.focus(); return; }
+        closeRevision();
+        startGeneration({ revision: r });
+      }
+
+      /* ---------- test / toast / actions ---------- */
+      function testError(msg, kind, status) { const e = new Error(msg); e.kind = kind; if (status) e.status = status; return e; }
+      async function fetchModels(form, signal) {
+        const headers = {}; if (form.apiKey) headers.Authorization = `Bearer ${form.apiKey}`;
+        let res;
+        try { res = await fetch(modelsEndpoint(form.baseUrl), { method: 'GET', headers, signal }); } catch (e) {
+          if (e?.name === 'AbortError') throw e;
+          throw testError('模型列表接口无法连接。', 'network');
+        }
+        if (res.ok) { let data = null; try { data = await res.json(); } catch (e) {} return Array.isArray(data?.data) ? data.data.map((m) => m?.id).filter(Boolean) : []; }
+        const raw = await res.text();
+        if (res.status === 401 || res.status === 403) throw testError('API Key 无效或没有权限。', 'auth', res.status);
+        if (res.status === 404 || res.status === 405) throw testError('未提供 /models 接口。', 'unsupported', res.status);
+        throw testError(httpError(res.status, raw), 'http', res.status);
+      }
+      async function testChat(form, signal) {
+        const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+        if (form.apiKey) headers.Authorization = `Bearer ${form.apiKey}`;
+        let res;
+        try {
+          res = await fetch(chatEndpoint(form.baseUrl), { method: 'POST', headers, body: JSON.stringify({ model: form.model, messages: [{ role: 'user', content: '只回复：OK' }], max_tokens: 16, stream: false }), signal });
+        } catch (e) {
+          if (e?.name === 'AbortError') throw e;
+          throw testError(humanError(e), 'network');
+        }
+        if (res.ok) { try { await res.text(); } catch (e) {} return true; }
+        const raw = await res.text();
+        if (res.status === 401 || res.status === 403) throw testError('API Key 无效或没有权限。', 'auth', res.status);
+        if (res.status === 404 || res.status === 405) throw testError('聊天接口路径不存在。', 'path', res.status);
+        throw testError(httpError(res.status, raw), 'http', res.status);
+      }
+      async function testConnection() {
+        let form;
+        try { form = readForm(); } catch (e) { setSettingsStatus(e.message, 'error'); return; }
+        const old = el.testBtn.textContent;
+        el.testBtn.disabled = true; el.testBtn.textContent = '检测中…'; setSettingsStatus('正在检测接口…', '');
+        const ctrl = new AbortController();
+        let timedOut = false;
+        const timer = setTimeout(() => { timedOut = true; ctrl.abort(); }, 20000);
+        try {
+          let modelFail = null;
+          try {
+            const models = await fetchModels(form, ctrl.signal);
+            setSettingsStatus(models.length ? `接口连通，读取到 ${models.length} 个模型。` : '接口连通，但未返回模型列表。', 'success');
+            return;
+          } catch (e) { if (timedOut || e?.name === 'AbortError') throw e; modelFail = e; }
+          setSettingsStatus('模型列表不可用，正在检测聊天接口…', '');
+          try { await testChat(form, ctrl.signal); setSettingsStatus(`聊天接口连通（${form.model}）。`, 'success'); }
+          catch (e) {
+            let msg = humanError(e);
+            if (e.kind === 'network') msg = '无法连接聊天接口，请检查 Base URL、网络或跨域设置。';
+            else if (e.kind === 'auth') msg = 'API Key 无效或没有权限。';
+            else if (e.kind === 'path') msg = '聊天接口路径不存在，Base URL 通常应形如 https://example.com/v1。';
+            if (modelFail?.kind === 'http') msg += ` 模型列表检测：${modelFail.message}`;
+            setSettingsStatus(msg, 'error');
+          }
+        } catch (e) {
+          if (timedOut) setSettingsStatus('检测超时，接口不可达或跨域被拦截。', 'error');
+          else if (e?.name === 'AbortError') setSettingsStatus('检测已取消。', 'error');
+          else setSettingsStatus(humanError(e), 'error');
+        } finally {
+          clearTimeout(timer); el.testBtn.disabled = false; el.testBtn.textContent = old;
+        }
+      }
+      function hideToast() { el.toast.classList.remove('is-visible'); el.toastAction.hidden = true; el.toastAction.onclick = null; clearTimeout(state.toastTimer); }
+      function showToast(msg, actionLabel, action) {
+        clearTimeout(state.toastTimer);
+        el.toastText.textContent = msg;
+        if (actionLabel && action) {
+          el.toastAction.hidden = false; el.toastAction.textContent = actionLabel;
+          el.toastAction.onclick = () => { hideToast(); action(); };
+        } else { el.toastAction.hidden = true; el.toastAction.onclick = null; }
+        requestAnimationFrame(() => el.toast.classList.add('is-visible'));
+        state.toastTimer = setTimeout(hideToast, actionLabel ? 5600 : 3200);
+      }
+      async function copyText() {
+        if (!state.output.trim()) return;
+        try {
+          if (navigator.clipboard && isSecureContext) await navigator.clipboard.writeText(state.output);
+          else {
+            const t = document.createElement('textarea'); t.value = state.output; t.style.position = 'fixed'; t.style.opacity = '0';
+            document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+          }
+          showToast('正文已复制');
+        } catch (e) { showToast('复制失败'); }
+      }
+      function downloadText() {
+        if (!state.output.trim()) return;
+        const blob = new Blob([`\uFEFF${state.output}`], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `叙野_${today().replace(/\./g,'-')}.txt`; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast('已导出 TXT');
+      }
+      function clearOutput() {
+        if (!state.output.trim() || state.generating) return;
+        const old = state.output; state.output = ''; state.error = '';
+        renderOutput(); updateMemoryMeta(); setStatus('等待灵感', 'idle'); saveBook();
+        showToast('手稿已清空', '撤销', () => { state.output = old; renderOutput(); updateMemoryMeta(); saveBook(); });
+      }
+      function clearAllBooks() {
+        if (state.generating) { showToast('请先停止生成'); return; }
+        if (!confirm('删除本机保存的全部书籍、设定、记忆和对话记录？无法恢复。')) return;
+        state.library = { version: 1, books: [] };
+        state.activeBookId = null; state.output = ''; state.error = ''; state.history = [];
+        removeStore(localStorage, STORAGE.library);
+        el.memoryInput.value = '';
+        el.studioView.hidden = true; el.shelfView.hidden = false;
+        renderShelf(); closeSettings(); document.title = '叙野 · 故事书架';
+        showToast('全部书籍已清除');
+      }
+
+      /* ---------- events ---------- */
+      function bind() {
+        [el.shelfSettingsBtn, el.studioSettingsBtn, el.emptyConfigBtn].forEach((b) => b?.addEventListener('click', openSettings));
+        el.closeSettingsBtn.addEventListener('click', closeSettings);
+        el.settingsLayer.addEventListener('click', (e) => { if (e.target.closest('[data-close-settings]')) closeSettings(); });
+        el.settingsForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          let form;
+          try { form = readForm(); } catch (err) { setSettingsStatus(err.message, 'error'); return; }
+          state.config = { baseUrl: form.baseUrl, model: form.model, apiKey: form.apiKey, remember: el.rememberKey.checked };
+          state.hasConfig = true;
+          saveConfig();
+          syncConnection();
+          setSettingsStatus('配置已保存。', 'success');
+          showToast('模型接口已保存');
+          setTimeout(() => { if (state.settingsOpen) closeSettings(); }, 500);
+        });
+        el.baseUrlInput.addEventListener('input', () => { updateEndpointPreview(); setSettingsStatus(''); });
+        el.apiKeyInput.addEventListener('input', () => setSettingsStatus(''));
+        el.modelInput.addEventListener('input', () => setSettingsStatus(''));
+        el.toggleKeyBtn.addEventListener('click', () => {
+          const show = el.apiKeyInput.type === 'password';
+          el.apiKeyInput.type = show ? 'text' : 'password';
+          el.toggleKeyBtn.textContent = show ? '隐藏' : '显示';
+          el.toggleKeyBtn.setAttribute('aria-pressed', String(show));
+        });
+        el.testBtn.addEventListener('click', testConnection);
+        el.forgetBtn.addEventListener('click', clearAllBooks);
+        el.backToShelfBtn.addEventListener('click', backToShelf);
+        el.bookGrid.addEventListener('click', (e) => {
+          const del = e.target.closest('[data-delete-book]');
+          if (del) { e.stopPropagation(); deleteBook(del.dataset.deleteBook); return; }
+          if (e.target.closest('[data-add-book]')) { openNewBook(); return; }
+          const card = e.target.closest('[data-book-id]');
+          if (card) openBook(card.dataset.bookId);
+        });
+        el.closeNewBookBtn.addEventListener('click', closeNewBook);
+        el.cancelNewBookBtn.addEventListener('click', closeNewBook);
+        el.newBookLayer.addEventListener('click', (e) => { if (e.target.closest('[data-close-new-book]')) closeNewBook(); });
+        el.createBookBtn.addEventListener('click', createBook);
+        el.newBookTitleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); createBook(); } });
+        el.closePreviewBtn.addEventListener('click', closePreview);
+        el.previewLayer.addEventListener('click', (e) => { if (e.target.closest('[data-close-preview]')) closePreview(); });
+        el.previewBtn.addEventListener('click', openPreview);
+        el.closeRevisionBtn.addEventListener('click', closeRevision);
+        el.cancelRevisionBtn.addEventListener('click', closeRevision);
+        el.revisionLayer.addEventListener('click', (e) => { if (e.target.closest('[data-close-revision]')) closeRevision(); });
+        el.submitRevisionBtn.addEventListener('click', submitRevision);
+        el.penBtn.addEventListener('click', openRevision);
+        el.addCharacterBtn.addEventListener('click', () => addCharacter());
+        el.addCharacterEmptyBtn.addEventListener('click', () => addCharacter());
+        el.characterList.addEventListener('click', (e) => { const b = e.target.closest('[data-remove-character]'); if (b) removeCharacter(b); });
+        el.characterList.addEventListener('input', scheduleSave);
+        [el.premiseInput, el.plotInput, el.requirementsInput].forEach((f) => f.addEventListener('input', scheduleSave));
+        el.memoryInput.addEventListener('input', () => { updateMemoryMeta(); scheduleSave(); });
+        el.generateBtn.addEventListener('click', generateOrStop);
+        el.mobileStopBtn.addEventListener('click', generateOrStop);
+        el.retryBtn.addEventListener('click', () => { if (!state.generating) startGeneration(state.lastRun); });
+        el.copyBtn.addEventListener('click', copyText);
+        el.downloadBtn.addEventListener('click', downloadText);
+        el.clearBtn.addEventListener('click', clearOutput);
+        el.memoryBtn.addEventListener('click', memorize);
+        el.memoryClearBtn.addEventListener('click', clearMemory);
+        el.mobileTabs.addEventListener('click', (e) => {
+          const tab = e.target.closest('[data-mobile-tab]');
+          if (tab) setMobileTab(tab.dataset.mobileTab);
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            if (!el.revisionLayer.hidden) { closeRevision(); return; }
+            if (!el.previewLayer.hidden) { closePreview(); return; }
+            if (!el.newBookLayer.hidden) { closeNewBook(); return; }
+            if (state.settingsOpen) { closeSettings(); return; }
+          }
+          if (state.settingsOpen) return;
+          if (!el.revisionLayer.hidden && (e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); submitRevision(); return; }
+          if (!el.studioView.hidden && el.previewLayer.hidden && el.newBookLayer.hidden && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault(); generateOrStop();
+          }
+        });
+        window.addEventListener('beforeunload', saveBook);
+      }
+
+      function init() {
+        loadConfig();
+        syncSettingsForm();
+        state.library = loadLibrary();
+        el.paperDate.textContent = today();
+        el.shelfDate.textContent = today();
+        el.shelfView.hidden = false;
+        el.studioView.hidden = true;
+        document.title = '叙野 · 故事书架';
+        syncConnection();
+        bind();
+        renderShelf();
+        updateMemoryMeta();
+        updateActions();
+        setStatus('等待灵感', 'idle');
+        if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+          navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
