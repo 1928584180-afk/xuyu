@@ -521,6 +521,43 @@
     }
     .remove-character svg { width: 11px; height: 11px; }
     .remove-character:hover { color: var(--accent); }
+    .character-identity { display: flex; align-items: center; gap: 7px; min-width: 0; }
+    .character-portrait {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 23px;
+      max-width: 88px;
+      padding: 0 5px;
+      border: 1px solid var(--line);
+      color: var(--faint);
+      background: transparent;
+      font-size: 7.5px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      transition: border-color 150ms var(--ease), color 150ms var(--ease);
+    }
+    .character-portrait:hover { border-color: var(--accent); color: var(--accent); }
+    .character-portrait.has-portrait { border-color: rgba(178, 59, 36, 0.34); color: var(--muted); }
+    .character-portrait img { width: 20px; height: 20px; object-fit: cover; display: block; }
+    .portrait-placeholder { display: inline-flex; align-items: center; gap: 3px; min-width: 0; }
+    .portrait-placeholder svg { width: 10px; height: 10px; flex: 0 0 10px; }
+    .portrait-placeholder span { overflow: hidden; text-overflow: ellipsis; }
+    .portrait-modal { width: min(640px, 100%); max-height: 90dvh; }
+    .portrait-stage {
+      display: grid;
+      place-items: center;
+      flex: 1 1 auto;
+      min-height: 220px;
+      padding: 14px;
+      background: #14110d;
+      overflow: hidden;
+    }
+    .portrait-stage img { display: block; max-width: 100%; max-height: 52dvh; object-fit: contain; }
+    .portrait-note { margin: 0; padding: 10px 18px 0; color: var(--muted); font-size: 9px; line-height: 1.7; }
+    .portrait-status { min-height: 15px; margin: 5px 0 0; padding: 0 18px; color: var(--faint); font-size: 8.5px; line-height: 1.6; }
+    .portrait-status[data-type="success"] { color: var(--green); }
+    .portrait-status[data-type="error"] { color: var(--accent); }
     .character-grid { display: grid; grid-template-columns: 1.15fr 0.78fr 0.65fr; gap: 3px 8px; }
     .char-field { display: block; min-width: 0; }
     .char-wide { grid-column: span 2; }
@@ -540,6 +577,23 @@
     }
     .char-field input::placeholder { color: #b0a698; opacity: 1; }
     .char-field input:focus { border-bottom-color: var(--accent); }
+    .char-field textarea {
+      display: block;
+      width: 100%;
+      min-height: 38px;
+      max-height: 100px;
+      padding: 2px 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      outline: 0;
+      resize: vertical;
+      color: var(--ink-soft);
+      background: transparent;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+    .char-field textarea::placeholder { color: #b0a698; opacity: 1; }
+    .char-field textarea:focus { border-bottom-color: var(--accent); }
     .character-empty {
       display: flex;
       align-items: center;
@@ -1160,6 +1214,7 @@
     .field-box textarea { font-size: 13.5px; }
     .char-field > span { font-size: 8px; }
     .char-field input { font-size: 11px; }
+    .char-field textarea { font-size: 11.5px; }
     .character-empty { font-size: 9.5px; }
     .locked-label { font-size: 8px; }
     .locked-values span { font-size: 8.5px; }
@@ -1203,6 +1258,9 @@
     .model-item-name { font-size: 12.5px; }
     .model-item-id { font-size: 10.5px; }
     .model-item-meta { font-size: 9.5px; }
+    .portrait-note { font-size: 9.5px; }
+    .portrait-status { font-size: 9px; }
+    .character-portrait { font-size: 8px; }
 
     @media (min-width: 901px) {
       .action-btn { font-size: 9.5px; }
@@ -1214,6 +1272,10 @@
       .model-modal { height: 88dvh; }
       .model-toolbar { padding: 8px 12px; }
       .model-list { padding-left: 8px; padding-right: 8px; }
+      .portrait-modal { height: 88dvh; }
+      .portrait-stage img { max-height: 46dvh; }
+      .character-portrait { height: 26px; }
+      .character-portrait img { width: 22px; height: 22px; }
       /* 16px prevents iOS Safari from auto-zooming focused form fields. */
       input, textarea { font-size: 16px !important; }
       .char-field input { height: 29px; }
@@ -1542,17 +1604,43 @@
 
   <template id="characterTemplate">
     <article class="character-card" data-character>
-      <div class="character-card-head"><span class="character-number" data-character-number>人物 01</span><button class="remove-character" type="button" data-remove-character aria-label="删除此人物"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
+      <div class="character-card-head">
+        <div class="character-identity">
+          <span class="character-number" data-character-number>人物 01</span>
+          <button class="character-portrait" type="button" data-character-portrait aria-label="上传人物参考图" title="上传或更换人物参考图">
+            <img data-character-thumb alt="" hidden>
+            <span class="portrait-placeholder" data-portrait-placeholder><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"/><circle cx="9" cy="10" r="2"/><path d="m21 15-5-5L5 20"/></svg><span data-portrait-label>参考图</span></span>
+          </button>
+        </div>
+        <button class="remove-character" type="button" data-remove-character aria-label="删除此人物"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+      </div>
       <div class="character-grid">
         <label class="char-field"><span>名字</span><input type="text" data-field="name" placeholder="如：沈砚" autocomplete="off" spellcheck="false"></label>
         <label class="char-field"><span>性别</span><input type="text" data-field="gender" placeholder="男 / 女 / 其他" autocomplete="off" spellcheck="false"></label>
         <label class="char-field" data-field="age-field"><span>年龄</span><input type="text" data-field="age" placeholder="34" autocomplete="off" spellcheck="false"></label>
-        <label class="char-field char-full"><span>外貌描写</span><input type="text" data-field="appearance" placeholder="瘦高，眼窝很深，左手背有旧烫伤" autocomplete="off" spellcheck="false"></label>
+        <label class="char-field char-full"><span>外貌描写</span><textarea data-field="appearance" rows="2" placeholder="瘦高，眼窝很深，左手背有旧烫伤" spellcheck="false"></textarea></label>
         <label class="char-field char-wide"><span>穿着</span><input type="text" data-field="outfit" placeholder="深灰长风衣，旧皮靴" autocomplete="off" spellcheck="false"></label>
         <label class="char-field"><span>性格</span><input type="text" data-field="personality" placeholder="寡言，敏锐，嘴硬" autocomplete="off" spellcheck="false"></label>
       </div>
     </article>
   </template>
+
+  <input id="portraitFileInput" type="file" accept="image/*" hidden>
+
+  <div class="modal-layer" id="portraitLayer" hidden>
+    <div class="modal-scrim" data-close-portrait aria-hidden="true"></div>
+    <section class="modal-card portrait-modal" role="dialog" aria-modal="true" aria-labelledby="portraitHeading">
+      <header class="modal-head"><div><span class="eyebrow">CHARACTER REFERENCE / 人物参考图</span><h2 id="portraitHeading">人物参考图</h2></div><button class="modal-close" id="closePortraitBtn" type="button" aria-label="关闭参考图"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></button></header>
+      <div class="portrait-stage"><img id="portraitImage" alt="人物参考图"></div>
+      <p class="portrait-note">参考图会随人物保存，可随时更换。点击「用参考图写外貌」会调用当前模型，需要模型支持图片输入。</p>
+      <p class="portrait-status" id="portraitStatus" role="status"></p>
+      <footer class="modal-foot">
+        <button class="modal-btn modal-btn-quiet" id="removePortraitBtn" type="button">移除</button>
+        <button class="modal-btn modal-btn-quiet" id="replacePortraitBtn" type="button">更换图片</button>
+        <button class="modal-btn modal-btn-primary" id="describePortraitBtn" type="button">用参考图写外貌</button>
+      </footer>
+    </section>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastText"></span><button id="toastAction" type="button" hidden></button></div>
 
@@ -1627,6 +1715,7 @@
         baseUrlInput: $('baseUrlInput'), apiKeyInput: $('apiKeyInput'), modelInput: $('modelInput'), rememberKey: $('rememberKey'),
         endpointPreview: $('endpointPreview'), toggleKeyBtn: $('toggleKeyBtn'), testBtn: $('testBtn'), settingsStatus: $('settingsStatus'), forgetBtn: $('forgetBtn'),
         modelLayer: $('modelLayer'), modelSearchInput: $('modelSearchInput'), modelList: $('modelList'), modelCount: $('modelCount'), closeModelBtn: $('closeModelBtn'), cancelModelBtn: $('cancelModelBtn'),
+        portraitFileInput: $('portraitFileInput'), portraitLayer: $('portraitLayer'), portraitImage: $('portraitImage'), portraitHeading: $('portraitHeading'), portraitStatus: $('portraitStatus'), removePortraitBtn: $('removePortraitBtn'), replacePortraitBtn: $('replacePortraitBtn'), describePortraitBtn: $('describePortraitBtn'), closePortraitBtn: $('closePortraitBtn'),
         toast: $('toast'), toastText: $('toastText'), toastAction: $('toastAction')
       };
 
@@ -1639,7 +1728,7 @@
         generating: false, controller: null, phase: 'idle', startedAt: 0, timer: null,
         renderQueued: false, draftTimer: null, toastTimer: null,
         settingsOpen: false, settingsHideTimer: null, lastFocused: null,
-        lastRun: { revision: '' }, mobileTab: 'settings', modelCatalog: []
+        lastRun: { revision: '' }, mobileTab: 'settings', modelCatalog: [], portraitCard: null
       };
 
       /* ---------- storage ---------- */
@@ -1677,12 +1766,37 @@
       }
 
       /* ---------- characters ---------- */
+      function setPortraitButton(card, image) {
+        const button = card.querySelector('[data-character-portrait]');
+        const thumb = card.querySelector('[data-character-thumb]');
+        const placeholder = card.querySelector('[data-portrait-placeholder]');
+        const label = card.querySelector('[data-portrait-label]');
+        card.dataset.image = typeof image === 'string' ? image : '';
+        if (image) {
+          thumb.src = image;
+          thumb.hidden = false;
+          placeholder.hidden = true;
+          button.classList.add('has-portrait');
+          button.setAttribute('aria-label', '查看或更换人物参考图');
+          button.title = '查看或更换人物参考图';
+        } else {
+          thumb.removeAttribute('src');
+          thumb.hidden = true;
+          placeholder.hidden = false;
+          button.classList.remove('has-portrait');
+          button.setAttribute('aria-label', '上传人物参考图');
+          button.title = '上传或更换人物参考图';
+          if (label) label.textContent = '参考图';
+        }
+      }
+
       function appendCharacter(data = {}) {
         const card = el.characterTemplate.content.firstElementChild.cloneNode(true);
         ['name', 'gender', 'age', 'appearance', 'outfit', 'personality'].forEach((field) => {
           const input = card.querySelector(`[data-field="${field}"]`);
           if (input) input.value = typeof data[field] === 'string' ? data[field] : '';
         });
+        setPortraitButton(card, data.image);
         el.characterList.appendChild(card);
         return card;
       }
@@ -1692,7 +1806,7 @@
             const input = card.querySelector(`[data-field="${field}"]`);
             return input ? input.value.trim() : '';
           };
-          return { name: read('name'), gender: read('gender'), age: read('age'), appearance: read('appearance'), outfit: read('outfit'), personality: read('personality') };
+          return { name: read('name'), gender: read('gender'), age: read('age'), appearance: read('appearance'), outfit: read('outfit'), personality: read('personality'), image: card.dataset.image || '' };
         });
       }
       function promptCharacters() { return charactersFromDOM().filter((c) => Object.values(c).some(Boolean)); }
@@ -1732,6 +1846,193 @@
         saveBook();
       }
 
+      /* ---------- character reference images ---------- */
+      function characterName(card) {
+        const input = card?.querySelector('[data-field="name"]');
+        return input && input.value.trim() ? input.value.trim() : (card?.querySelector('[data-character-number]')?.textContent || '这个人物');
+      }
+
+      function setPortraitStatus(text, type = '') {
+        el.portraitStatus.textContent = text;
+        el.portraitStatus.dataset.type = type;
+      }
+
+      function openPortraitViewer(card) {
+        if (!card || !card.dataset.image) return;
+        hideToast();
+        state.portraitCard = card;
+        el.portraitImage.src = card.dataset.image;
+        el.portraitHeading.textContent = `${characterName(card)} · 参考图`;
+        setPortraitStatus('');
+        el.portraitLayer.hidden = false;
+        setTimeout(() => el.closePortraitBtn.focus({ preventScroll: true }), 60);
+      }
+
+      function closePortraitViewer() {
+        el.portraitLayer.hidden = true;
+        el.portraitImage.removeAttribute('src');
+        setPortraitStatus('');
+        state.portraitCard = null;
+      }
+
+      function triggerPortraitUpload(card) {
+        if (!card) return;
+        state.portraitCard = card;
+        el.portraitFileInput.value = '';
+        el.portraitFileInput.click();
+      }
+
+      function compressPortrait(file) {
+        return new Promise((resolve, reject) => {
+          if (!file.type.startsWith('image/')) { reject(new Error('请选择图片文件。')); return; }
+          if (file.size > 15 * 1024 * 1024) { reject(new Error('图片过大，请选择 15MB 以内的图片。')); return; }
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error('图片读取失败。'));
+          reader.onload = () => {
+            const img = new Image();
+            img.onerror = () => reject(new Error('图片无法解析。'));
+            img.onload = () => {
+              const max = 640;
+              let width = img.naturalWidth || img.width;
+              let height = img.naturalHeight || img.height;
+              if (!width || !height) { reject(new Error('图片尺寸无效。')); return; }
+              const ratio = Math.min(1, max / Math.max(width, height));
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = '#f7f1e7';
+              ctx.fillRect(0, 0, width, height);
+              ctx.drawImage(img, 0, 0, width, height);
+              try { resolve(canvas.toDataURL('image/jpeg', 0.78)); }
+              catch (e) { reject(new Error('图片处理失败。')); }
+            };
+            img.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function handlePortraitFile(file) {
+        const card = state.portraitCard;
+        el.portraitFileInput.value = '';
+        if (!card || !file) return;
+        setPortraitStatus('正在处理图片…', '');
+        try {
+          const data = await compressPortrait(file);
+          if (!document.contains(card)) throw new Error('人物已被删除。');
+          setPortraitButton(card, data);
+          saveBook();
+          if (!el.portraitLayer.hidden && state.portraitCard === card) {
+            el.portraitImage.src = data;
+            el.portraitHeading.textContent = `${characterName(card)} · 参考图`;
+            setPortraitStatus('参考图已更新，可随时再次更换。', 'success');
+          } else {
+            openPortraitViewer(card);
+            setPortraitStatus('参考图已保存，可随时更换。', 'success');
+          }
+        } catch (e) {
+          setPortraitStatus(e.message || '图片处理失败。', 'error');
+          showToast(e.message || '图片处理失败');
+        }
+      }
+
+      function removePortrait() {
+        const card = state.portraitCard;
+        if (!card) return;
+        setPortraitButton(card, '');
+        saveBook();
+        closePortraitViewer();
+        showToast('人物参考图已移除');
+      }
+
+      async function describeFromPortrait() {
+        const card = state.portraitCard;
+        if (!card) return;
+        const image = card.dataset.image;
+        if (!image) { setPortraitStatus('请先上传人物参考图。', 'error'); return; }
+        if (!state.hasConfig) { setPortraitStatus('请先在设置中配置支持图片输入的模型。', 'error'); showToast('先配置 API'); return; }
+
+        const name = characterName(card);
+        const appearanceInput = card.querySelector('[data-field="appearance"]');
+        const currentAppearance = appearanceInput ? appearanceInput.value.trim() : '';
+        const prompt = [
+          `请根据这张人物参考图，为「${name}」写一段中文外貌描写。`,
+          currentAppearance ? `已有文字设定：${currentAppearance}。请以图片为准，融合已有设定，不要与图片冲突。` : '',
+          '只写外貌与气质，控制在 80 至 140 字。不要写姓名、标题、解释、项目符号、引号或任何元话语，直接输出一段正文。'
+        ].filter(Boolean).join('\n\n');
+        const messages = [
+          { role: 'system', content: '你是一位中文小说人物设定助手。只输出一段外貌描写，不解释，不写其他内容。' },
+          { role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: image } }] }
+        ];
+        const payload = {
+          model: state.config.model,
+          messages,
+          temperature: FIXED_PARAMS.temperature,
+          top_p: FIXED_PARAMS.top_p,
+          top_k: FIXED_PARAMS.top_k,
+          frequency_penalty: FIXED_PARAMS.frequency_penalty,
+          presence_penalty: FIXED_PARAMS.presence_penalty,
+          repetition_penalty: FIXED_PARAMS.repetition_penalty,
+          max_tokens: 500,
+          stream: false
+        };
+
+        const oldLabel = el.describePortraitBtn.textContent;
+        el.describePortraitBtn.disabled = true;
+        el.describePortraitBtn.textContent = '正在描写…';
+        el.removePortraitBtn.disabled = true;
+        el.replacePortraitBtn.disabled = true;
+        setPortraitStatus('正在读取参考图并生成外貌…', '');
+
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 60000);
+        try {
+          const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+          if (state.config.apiKey) headers.Authorization = `Bearer ${state.config.apiKey}`;
+          const endpoint = chatEndpoint(state.config.baseUrl);
+          let response = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(payload), signal: ctrl.signal });
+          let raw = await response.text();
+
+          if (!response.ok && (response.status === 400 || response.status === 422) && extensionError(raw)) {
+            const fallback = { ...payload };
+            delete fallback.top_k;
+            delete fallback.repetition_penalty;
+            response = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(fallback), signal: ctrl.signal });
+            raw = await response.text();
+          }
+          if (!response.ok) throw new Error(httpError(response.status, raw));
+
+          let data;
+          try { data = JSON.parse(raw); } catch (e) { throw new Error('接口返回了无法解析的内容。'); }
+          let text = extractText(data).trim();
+          if (!text) throw new Error('模型没有返回外貌描写。');
+          text = text.replace(/^外貌描写\s*[:：]\s*/, '').replace(/^["“]/, '').replace(/["”]$/, '').trim();
+          if (!document.contains(card)) throw new Error('人物已被删除。');
+          if (appearanceInput) {
+            appearanceInput.value = text;
+            appearanceInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          saveBook();
+          setPortraitStatus('已写入外貌描写，可回到人物卡继续编辑。', 'success');
+        } catch (e) {
+          const msg = e?.name === 'AbortError'
+            ? '图片描写请求超时。'
+            : (/image|vision|multimodal|content|unsupported|not support/i.test(e?.message || '')
+              ? '当前模型不支持图片输入，请选择一个支持视觉的模型。'
+              : humanError(e));
+          setPortraitStatus(msg, 'error');
+        } finally {
+          clearTimeout(timer);
+          el.describePortraitBtn.disabled = false;
+          el.describePortraitBtn.textContent = oldLabel;
+          el.removePortraitBtn.disabled = false;
+          el.replacePortraitBtn.disabled = false;
+        }
+      }
+
       /* ---------- books ---------- */
       function normalizeBook(raw) {
         if (!raw || typeof raw !== 'object') return null;
@@ -1750,7 +2051,8 @@
             age: typeof c?.age === 'string' ? c.age : '',
             appearance: typeof c?.appearance === 'string' ? c.appearance : '',
             outfit: typeof c?.outfit === 'string' ? c.outfit : '',
-            personality: typeof c?.personality === 'string' ? c.personality : ''
+            personality: typeof c?.personality === 'string' ? c.personality : '',
+            image: typeof c?.image === 'string' && c.image.startsWith('data:image/') && c.image.length < 2500000 ? c.image : ''
           })) : [],
           output: typeof raw.output === 'string' ? raw.output : '',
           memoryText: typeof raw.memoryText === 'string' ? raw.memoryText.slice(0, 20000) : '',
@@ -2345,9 +2647,9 @@
         });
         el.previewBody.appendChild(fragment);
       }
-      function openPreview() { if (!state.activeBookId) return; renderPreview(); el.previewLayer.hidden = false; el.previewBody.scrollTop = 0; setTimeout(() => el.closePreviewBtn.focus({ preventScroll: true }), 60); }
+      function openPreview() { if (!state.activeBookId) return; hideToast(); renderPreview(); el.previewLayer.hidden = false; el.previewBody.scrollTop = 0; setTimeout(() => el.closePreviewBtn.focus({ preventScroll: true }), 60); }
       function closePreview() { el.previewLayer.hidden = true; }
-      function openRevision() { if (!state.output.trim() || state.generating) return; el.revisionInput.value = ''; el.revisionError.textContent = ''; el.revisionLayer.hidden = false; setTimeout(() => el.revisionInput.focus({ preventScroll: true }), 60); }
+      function openRevision() { if (!state.output.trim() || state.generating) return; hideToast(); el.revisionInput.value = ''; el.revisionError.textContent = ''; el.revisionLayer.hidden = false; setTimeout(() => el.revisionInput.focus({ preventScroll: true }), 60); }
       function closeRevision() { el.revisionLayer.hidden = true; }
       function submitRevision() {
         const r = el.revisionInput.value.trim();
@@ -2598,9 +2900,28 @@
         el.revisionLayer.addEventListener('click', (e) => { if (e.target.closest('[data-close-revision]')) closeRevision(); });
         el.submitRevisionBtn.addEventListener('click', submitRevision);
         el.penBtn.addEventListener('click', openRevision);
+        el.portraitFileInput.addEventListener('change', () => handlePortraitFile(el.portraitFileInput.files && el.portraitFileInput.files[0]));
+        el.closePortraitBtn.addEventListener('click', closePortraitViewer);
+        el.portraitLayer.addEventListener('click', (e) => { if (e.target.closest('[data-close-portrait]')) closePortraitViewer(); });
+        el.replacePortraitBtn.addEventListener('click', () => { if (state.portraitCard) triggerPortraitUpload(state.portraitCard); });
+        el.removePortraitBtn.addEventListener('click', removePortrait);
+        el.describePortraitBtn.addEventListener('click', describeFromPortrait);
         el.addCharacterBtn.addEventListener('click', () => addCharacter());
         el.addCharacterEmptyBtn.addEventListener('click', () => addCharacter());
-        el.characterList.addEventListener('click', (e) => { const b = e.target.closest('[data-remove-character]'); if (b) removeCharacter(b); });
+        el.characterList.addEventListener('click', (e) => {
+          const portrait = e.target.closest('[data-character-portrait]');
+          if (portrait) {
+            const card = portrait.closest('[data-character]');
+            if (card) {
+              state.portraitCard = card;
+              if (card.dataset.image) openPortraitViewer(card);
+              else triggerPortraitUpload(card);
+            }
+            return;
+          }
+          const b = e.target.closest('[data-remove-character]');
+          if (b) removeCharacter(b);
+        });
         el.characterList.addEventListener('input', scheduleSave);
         [el.premiseInput, el.plotInput, el.requirementsInput].forEach((f) => f.addEventListener('input', scheduleSave));
         el.memoryInput.addEventListener('input', () => { updateMemoryMeta(); scheduleSave(); });
@@ -2618,6 +2939,7 @@
         });
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
+            if (!el.portraitLayer.hidden) { closePortraitViewer(); return; }
             if (!el.modelLayer.hidden) { closeModelPicker(); return; }
             if (!el.revisionLayer.hidden) { closeRevision(); return; }
             if (!el.previewLayer.hidden) { closePreview(); return; }

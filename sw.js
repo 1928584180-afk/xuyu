@@ -1,5 +1,5 @@
 /* 叙野 PWA service worker: caches the app shell, never caches API calls. */
-const CACHE_NAME = 'xuye-pwa-v2';
+const CACHE_NAME = 'xuye-pwa-v3';
 const APP_SHELL = [
   './',
   './index.html',

@@ -4,7 +4,7 @@
 
 ## 文件
 
-- `index.html`：完整应用（书架、设定、手稿、记忆、对话预览、钢笔重写）。
+- `index.html`：完整应用（书架、设定、人物参考图、手稿、记忆、对话预览、钢笔重写）。
 - `manifest.webmanifest`：PWA 应用信息。
 - `sw.js`：离线缓存 Service Worker。
 - `icon-192.png`、`icon-512.png`、`icon-maskable-512.png`、`apple-touch-icon.png`：主屏幕图标。
@@ -23,6 +23,12 @@
 5. 保存配置。
 
 配置只保存在当前浏览器的本地存储中。关闭“记住 API Key”后，密钥只存在于当前标签页。
+
+## 人物参考图
+
+每个人物标签旁都有「参考图」按钮，可以上传、查看、随时更换或移除图片。图片会压缩后保存在当前书籍中。
+
+在参考图查看器里点「用参考图写外貌」，会把图片发给当前模型并写入人物的「外貌描写」字段。这个功能需要选择支持图片输入的视觉模型；普通文本模型可能返回错误。
 
 固定参数：Temperature `0.70`、Top P `0.90`、Top K `50`、Frequency Penalty `0.20`、Presence Penalty `0.20`、Repetition Penalty `1.00`。TOP K 与 Repetition Penalty 不被接口支持时会自动省略并重试。
 
